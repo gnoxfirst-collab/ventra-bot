@@ -3,9 +3,16 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const configFile = require('./config.json');
-const token = configFile.token;
-const clientId = configFile.clientId;
+// قراءة التوكن والـ ClientId سواء محلياً أو من متغيرات البيئة في المنصة
+let token, clientId;
+try {
+  const configFile = require('./config.json');
+  token = configFile.token;
+  clientId = configFile.clientId;
+} catch (error) {
+  token = process.env.TOKEN;
+  clientId = process.env.CLIENT_ID;
+}
 
 const client = new Client({
   intents: [
@@ -63,7 +70,7 @@ client.once('ready', async () => {
     console.error(`⚠️ حدث خطأ أثناء تسجيل الأوامر:`, error.message);
   }
 
-  // عرض روابط السيرفرات المتواجد فيها البوت (تمت إعادتها بنجاح)
+  // عرض روابط السيرفرات المتواجد فيها البوت
   console.log(`\n🌐 روابط السيرفرات المتواجد فيها البوت (${client.guilds.cache.size}):`);
   
   for (const [id, guild] of client.guilds.cache) {
