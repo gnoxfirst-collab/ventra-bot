@@ -209,4 +209,17 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.login(token);
+// منع البوت من الكراش عند حدوث أخطاء غير متوقعة
+process.on('unhandledRejection', (reason, promise) => {
+    console.log('🔴 خطأ غير معالج:', reason);
+});
+
+process.on('uncaughtException', (err, origin) => {
+    console.log('🔴 استثناء غير ملتقط:', err);
+});
+
+process.on('uncaughtExceptionMonitor', (err, origin) => {
+    console.log('🔴 مراقبة الاستثناءات:', err);
+});
+
+client.login(token)
