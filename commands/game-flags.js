@@ -1,99 +1,76 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+\const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-// قائمة ضخمة وشاملة لكل أعلام ودول العالم (أكثر من 190 دولة)
+// قائمة شاملة لجميع دول العالم مع الرمز الكودي لخدمة الصور المباشرة HD High-Resolution Flags
 const ALL_FLAGS = [
-  { country: 'مصر', flag: '🇪🇬' }, { country: 'السعودية', flag: '🇸🇦' }, { country: 'الإمارات', flag: '🇦🇪' },
-  { country: 'الكويت', flag: '🇰🇼' }, { country: 'قطر', flag: '🇶🇦' }, { country: 'البحرين', flag: '🇧🇭' },
-  { country: 'عومان', flag: '🇴🇲' }, { country: 'الأردن', flag: '🇯🇴' }, { country: 'فلسطين', flag: '🇵🇸' },
-  { country: 'لبنان', flag: '🇱🇧' }, { country: 'سوريا', flag: '🇸🇾' }, { country: 'العراق', flag: '🇮🇶' },
-  { country: 'المغرب', flag: '🇲🇦' }, { country: 'الجزائر', flag: '🇩🇿' }, { country: 'تونس', flag: '🇹🇳' },
-  { country: 'ليبيا', flag: '🇱🇾' }, { country: 'السودان', flag: '🇸🇩' }, { country: 'موريتانيا', flag: '🇲🇷' },
-  { country: 'اليمن', flag: '🇾🇪' }, { country: 'الصومال', flag: '🇸🇴' }, { country: 'جيبوتي', flag: '🇩🇯' },
-  { country: 'جزر القمر', flag: '🇰🇲' }, { country: 'تركيا', flag: '🇹🇷' }, { country: 'إيران', flag: '🇮🇷' },
-  { country: 'باكستان', flag: '🇵🇰' }, { country: 'أفغانستان', flag: '🇦🇫' }, { country: 'الهند', flag: '🇮🇳' },
-  { country: 'بنغلاديش', flag: '🇧🇩' }, { country: 'إندونيسيا', flag: '🇮🇩' }, { country: 'ماليزيا', flag: '🇲🇾' },
-  { country: 'سنغافورة', flag: '🇸🇬' }, { country: 'تايلاند', flag: '🇹🇭' }, { country: 'فيتنام', flag: '🇻🇳' },
-  { country: 'الفلبين', flag: '🇵🇭' }, { country: 'اليابان', flag: '🇯🇵' }, { country: 'كوريا الجنوبية', flag: '🇰🇷' },
-  { country: 'كوريا الشمالية', flag: '🇰🇵' }, { country: 'الصين', flag: '🇨🇳' }, { country: 'روسيا', flag: '🇷🇺' },
-  { country: 'أوكرانيا', flag: '🇺🇦' }, { country: 'ألمانيا', flag: '🇩🇪' }, { country: 'فرنسا', flag: '🇫🇷' },
-  { country: 'إيطاليا', flag: '🇮🇹' }, { country: 'إسبانيا', flag: '🇪🇸' }, { country: 'البرتغال', flag: '🇵🇹' },
-  { country: 'المملكة المتحدة', flag: '🇬🇧' }, { country: 'بريطانيا', flag: '🇬🇧' }, { country: 'إنجلترا', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-  { country: 'الولايات المتحدة', flag: '🇺🇸' }, { country: 'امريكا', flag: '🇺🇸' }, { country: 'كندا', flag: '🇨🇦' },
-  { country: 'المكسيك', flag: '🇲🇽' }, { country: 'البرازيل', flag: '🇧🇷' }, { country: 'الأرجنتين', flag: '🇦🇷' },
-  { country: 'تشيلي', flag: '🇨🇱' }, { country: 'كولومبيا', flag: '🇨🇴' }, { country: 'بيرو', flag: '🇵🇪' },
-  { country: 'أستراليا', flag: '🇦🇺' }, { country: 'نيوزيلندا', flag: '🇳🇿' }, { country: 'جنوب إفريقيا', flag: '🇿🇦' },
-  { country: 'نيجيريا', flag: '🇳🇬' }, { country: 'كينيا', flag: '🇰🇪' }, { country: 'إثيوبيا', flag: '🇪🇹' },
-  { country: 'غانا', flag: '🇬🇭' }, { country: 'الكاميرون', flag: '🇨🇲' }, { country: 'السنغال', flag: '🇸🇳' },
-  { country: 'اليونان', flag: '🇬🇷' }, { country: 'قبرص', flag: '🇨🇾' }, { country: 'إيفرست', flag: '🇳🇵' },
-  { country: 'نيبال', flag: '🇳🇵' }, { country: 'سويسرا', flag: '🇨🇭' }, { country: 'النمسا', flag: '🇦🇹' },
-  { country: 'بلجيكا', flag: '🇧🇪' }, { country: 'هولندا', flag: '🇳🇱' }, { country: 'السويد', flag: '🇸🇪' },
-  { country: 'النرويج', flag: '🇳🇴' }, { country: 'الدنمارك', flag: '🇩🇰' }, { country: 'فنلندا', flag: '🇫🇮' },
-  { country: 'أيسلندا', flag: '🇮🇸' }, { country: 'بولندا', flag: '🇵🇱' }, { country: 'جمهورية التشيك', flag: '🇨🇿' },
-  { country: 'المجر', flag: '🇭🇺' }, { country: 'رومانيا', flag: '🇷🇴' }, { country: 'بلغاريا', flag: '🇧🇬' },
-  { country: 'صربيا', flag: '🇷🇸' }, { country: 'كرواتيا', flag: '🇭🇷' }, { country: 'ألبانيا', flag: '🇦🇱' },
-  { country: 'أيرلندا', flag: '🇮🇪' }, { country: 'كوبا', flag: '🇨🇺' }, { country: 'بنما', flag: '🇵🇦' },
-  { country: 'فنزويلا', flag: '🇻🇪' }, { country: 'إكوادور', flag: '🇪🇨' }, { country: 'بوليفيا', flag: '🇧🇴' },
-  { country: 'باراغواي', flag: '🇵🇾' }, { country: 'أوروغواي', flag: '🇺🇾' }, { country: 'كوستاريكا', flag: '🇨🇷' },
-  { country: 'جامايكا', flag: '🇯🇲' }, { country: 'هايتي', flag: '🇭🇹' }, { country: 'الدومينكان', flag: '🇩🇴' },
-  { country: 'إندونيسيا', flag: '🇮🇩' }, { country: 'مالطا', flag: '🇲🇹' }, { country: 'الفاتيكان', flag: '🇻🇦' },
-  { country: 'موناكو', flag: '🇲🇨' }, { country: 'أندورا', flag: '🇦🇩' }, { country: 'ليختنشتاين', flag: '🇱🇮' },
-  { country: 'سلوفاكيا', flag: '🇸🇰' }, { country: 'سلوفينيا', flag: '🇸🇮' }, { country: 'استونيا', flag: '🇪🇪' },
-  { country: 'لاتفيا', flag: '🇱🇻' }, { country: 'ليتوانيا', flag: '🇱🇹' }, { country: 'بيلاروسيا', flag: '🇧🇾' },
-  { country: 'جورجيا', flag: '🇬🇪' }, { country: 'أرمينيا', flag: '🇦🇲' }, { country: 'أذربيجان', flag: '🇦🇿' },
-  { country: 'كازاخستان', flag: '🇰🇿' }, { country: 'أوزبكستان', flag: '🇺🇿' }, { country: 'تركمانستان', flag: '🇹🇲' },
-  { country: 'قيرغيزستان', flag: '🇰🇬' }, { country: 'طاجيكستان', flag: '🇹🇯' }, { country: 'منغوليا', flag: '🇲🇳' },
-  { country: 'سريلانكا', flag: '🇱🇰' }, { country: 'نيپال', flag: '🇳🇵' }, { country: 'ميانمار', flag: '🇲🇲' },
-  { country: 'لاوس', flag: '🇱🇦' }, { country: 'كمبوديا', flag: '🇰🇭' }, { country: 'بروناي', flag: '🇧🇳' },
-  { country: 'تيمور الشرقية', flag: '🇹🇱' }, { country: 'بابوا غينيا الجديدة', flag: '🇵🇬' }, { country: 'فيجي', flag: '🇫🇯' }
+  { country: 'مصر', code: 'eg' }, { country: 'السعودية', code: 'sa' }, { country: 'الإمارات', code: 'ae' },
+  { country: 'الكويت', code: 'kw' }, { country: 'قطر', code: 'qa' }, { country: 'البحرين', code: 'bh' },
+  { country: 'عمان', code: 'om' }, { country: 'الأردن', code: 'jo' }, { country: 'فلسطين', code: 'ps' },
+  { country: 'لبنان', code: 'lb' }, { country: 'سوريا', code: 'sy' }, { country: 'العراق', code: 'iq' },
+  { country: 'المغرب', code: 'ma' }, { country: 'الجزائر', code: 'dz' }, { country: 'تونس', code: 'tn' },
+  { country: 'ليبيا', code: 'ly' }, { country: 'السودان', code: 'sd' }, { country: 'موريتانيا', code: 'mr' },
+  { country: 'اليمن', code: 'ye' }, { country: 'الصومال', code: 'so' }, { country: 'جيبوتي', code: 'dj' },
+  { country: 'تركي', code: 'tr' }, { country: 'تركيا', code: 'tr' }, { country: 'إيران', code: 'ir' },
+  { country: 'باكستان', code: 'pk' }, { country: 'الهند', code: 'in' }, { country: 'إندونيسيا', code: 'id' },
+  { country: 'ماليزيا', code: 'my' }, { country: 'اليابان', code: 'jp' }, { country: 'كوريا الجنوبية', code: 'kr' },
+  { country: 'الصين', code: 'cn' }, { country: 'روسيا', code: 'ru' }, { country: 'ألمانيا', code: 'de' },
+  { country: 'فرنسا', code: 'fr' }, { country: 'إيطاليا', code: 'it' }, { country: 'إسبانيا', code: 'es' },
+  { country: 'البرتغال', code: 'pt' }, { country: 'بريطانيا', code: 'gb' }, { country: 'المملكة المتحدة', code: 'gb' },
+  { country: 'أمريكا', code: 'us' }, { country: 'الولايات المتحدة', code: 'us' }, { country: 'كندا', code: 'ca' },
+  { country: 'المكسيك', code: 'mx' }, { country: 'البرازيل', code: 'br' }, { country: 'الأرجنتين', code: 'ar' },
+  { country: 'أستراليا', code: 'au' }, { country: 'جنوب إفريقيا', code: 'za' }, { country: 'السويد', code: 'se' },
+  { country: 'النرويج', code: 'no' }, { country: 'الدنمارك', code: 'dk' }, { country: 'فنلندا', code: 'fi' },
+  { country: 'سويسرا', code: 'ch' }, { country: 'هولندا', code: 'nl' }, { country: 'بلجيكا', code: 'be' }
 ];
 
-// نظام لتخزين الأعلام التي تم استخدامها لكل سيرفر لعدم التكرار
+// نظام لتخزين الأعلام المستخدمة لكل سيرفر لمنع التكرار
 const usedFlagsCache = new Map();
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('game-flags')
-    .setDescription('لعبة تخمين جميع أعلام دول العالم (بدون تكرار حتى تنتهي القائمة)'),
+    .setDescription('لعبة تخمين جميع أعلام دول العالم بالصور HD (بدون تكرار)'),
 
   async execute(interaction) {
     await interaction.deferReply();
 
     const guildId = interaction.guildId;
+    const guildIcon = interaction.guild?.iconURL({ dynamic: true }) || interaction.client.user.displayAvatarURL();
 
-    // تهيئة قائمة السيرفر إذا لم تكن موجودة
+    // تهيئة القائمة الخاصة بالسيرفر
     if (!usedFlagsCache.has(guildId)) {
       usedFlagsCache.set(guildId, []);
     }
 
     let serverUsed = usedFlagsCache.get(guildId);
 
-    // إذا تم استنفاد كل الأعلام، نقوم بإعادة تعبئة القائمة من جديد
+    // إعادة تعبئة الأعلام إذا تم استهلاك جميع الدول
     if (serverUsed.length >= ALL_FLAGS.length) {
       serverUsed = [];
       usedFlagsCache.set(guildId, serverUsed);
     }
 
-    // تصفية الأعلام المتبقية التي لم تظهر بعد
+    // فلترة الأعلام المتاحة فقط
     const availableFlags = ALL_FLAGS.filter((_, index) => !serverUsed.includes(index));
+    const selectedFlagObj = availableFlags[Math.floor(Math.random() * availableFlags.length)];
 
-    // اختيار علم عشوائي من المتبقي
-    const randomIndexAvailable = Math.floor(Math.random() * availableFlags.length);
-    const selectedFlagObj = availableFlags[randomIndexAvailable];
-    
-    // إيجاد الفهرس الأصلي وحفظه في السيرفر لكي لا يتكرر
-    const originalIndex = ALL_FLAGS.findIndex(f => f.country === selectedFlagObj.country);
+    // حظر هذا العلم في السيرفر لكي لا يتكرر
+    const originalIndex = ALL_FLAGS.findIndex(f => f.country === selectedFlagObj.country && f.code === selectedFlagObj.code);
     serverUsed.push(originalIndex);
 
+    // رابط صورة العلم بجودة HD واضحة جداً وخطوط بارزة
+    const flagImageUrl = `https://flagcdn.com/w640/${selectedFlagObj.code}.png`;
+
     const embed = new EmbedBuilder()
+      .setColor('#2b2d31')
       .setTitle('🎮 تحدي أعلام دول العالم!')
-      .setColor('#00FF7F')
       .setDescription(
-        `ما هي الدولة التي يمثلها هذا العلم؟\n\n` +
-        `# ${selectedFlagObj.flag}\n\n` +
-        `⏱️ **لديك 15 ثانية لكتابة اسم الدولة في الشات!**\n` +
+        'ما هي الدولة التي يمثلها هذا العلم المعروض في الصورة؟\n\n' +
+        '⏱️ **لديك 15 ثانية لكتابة اسم الدولة في الشات!**\n\n' +
         `📊 *(الأعلام المتبقية بدون تكرار: ${ALL_FLAGS.length - serverUsed.length} من ${ALL_FLAGS.length})*`
       )
-      .setFooter({ text: 'Aurebot • Flags Game System', iconURL: interaction.client.user.displayAvatarURL() })
+      .setThumbnail(guildIcon) // صورة السيرفر بجانب الإمبيد
+      .setImage(flagImageUrl) // صورة العلم HD كبيرة وواضحة جداً
+      .setFooter({ text: 'Aurebot • Flags Game System' })
       .setTimestamp();
 
     await interaction.editReply({ embeds: [embed] });
@@ -115,7 +92,7 @@ module.exports = {
         const successEmbed = new EmbedBuilder()
           .setTitle('🎉 إجابة صحيحة!')
           .setColor('#00FF00')
-          .setDescription(`كفو يا بطل! الإجابة الصحيحة هي بالفعل **${selectedFlagObj.country}** ${selectedFlagObj.flag}`)
+          .setDescription(`كفو يا بطل! الإجابة الصحيحة هي بالفعل **${selectedFlagObj.country}** 🏆`)
           .setFooter({ text: 'Aurebot' });
 
         return await userMessage.reply({ embeds: [successEmbed] });
@@ -123,7 +100,7 @@ module.exports = {
         const failEmbed = new EmbedBuilder()
           .setTitle('❌ إجابة خاطئة!')
           .setColor('#FF0000')
-          .setDescription(`للأسف إجابة خاطئة! الدولة الصحيحة هي **${selectedFlagObj.country}** ${selectedFlagObj.flag}`)
+          .setDescription(`للأسف إجابة خاطئة! الدولة الصحيحة هي **${selectedFlagObj.country}**`)
           .setFooter({ text: 'Aurebot' });
 
         return await userMessage.reply({ embeds: [failEmbed] });
@@ -133,7 +110,7 @@ module.exports = {
       const timeoutEmbed = new EmbedBuilder()
         .setTitle('⏰ انتهى الوقت!')
         .setColor('#FFA500')
-        .setDescription(`انتهت الـ 15 ثانية دون إجابة! الدولة كانت **${selectedFlagObj.country}** ${selectedFlagObj.flag}`)
+        .setDescription(`انتهت الـ 15 ثانية دون إجابة! الدولة كانت **${selectedFlagObj.country}**`)
         .setFooter({ text: 'Aurebot' });
 
       return await interaction.followUp({ embeds: [timeoutEmbed] });

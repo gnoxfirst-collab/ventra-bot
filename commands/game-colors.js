@@ -1,49 +1,38 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
-// قائمة للألوان وتدرجاتها الصعبة مع استبدال SVG بصور PNG واضحة ومباشرة
-const allColorsList = [
-  { name: "عنبري", hex: "#FFBF00" },
-  { name: "خردلي", hex: "#FFDB58" },
-  { name: "مشمشي", hex: "#FBCEB1" },
-  { name: "عسلي", hex: "#D4AF37" },
-  { name: "ذهبي", hex: "#FFD700" },
-  { name: "فيروزي", hex: "#40E0D0" },
-  { name: "قرمزي", hex: "#DC143C" },
-  { name: "بنفسجي", hex: "#8A2BE2" },
-  { name: "أرجواني", hex: "#C71585" },
-  { name: "زمردي", hex: "#50C878" },
-  { name: "ياقوتي", hex: "#E0115F" },
-  { name: "نيلي", hex: "#4B0082" },
-  { name: "كستنائي", hex: "#954535" },
-  { name: "سماوي", hex: "#87CEEB" },
-  { name: "زيتوني", hex: "#808000" },
-  { name: "مرجاني", hex: "#FF7F50" },
-  { name: "خزامي", hex: "#E6E6FA" },
-  { name: "فستقي", hex: "#93C572" },
-  { name: "وردي فاتح", hex: "#FFB6C1" },
-  { name: "ليموني", hex: "#FFF700" },
-  { name: "عنابي", hex: "#800020" },
-  { name: "لازوردي", hex: "#007FFF" },
-  { name: "برونزي", hex: "#CD7F32" },
-  { name: "رمادي داكن", hex: "#A9A9A9" },
-  { name: "رمادي فاتح", hex: "#D3D3D3" },
-  { name: "فحمي", hex: "#36454F" },
-  { name: "خاكي", hex: "#C3B091" },
-  { name: "أوف وايت", hex: "#F8F8FF" },
-  { name: "كريمي", hex: "#FFFDD0" },
-  { name: "طوبي", hex: "#B22222" }
+// قائمة ضخمة وشاملة لأغلب ألوان وتدرجات العالم
+const ALL_COLORS_POOL = [
+  { name: "عنبري", hex: "FFBF00" }, { name: "خردلي", hex: "FFDB58" },
+  { name: "مشمشي", hex: "FBCEB1" }, { name: "عسلي", hex: "D4AF37" },
+  { name: "ذهبي", hex: "FFD700" }, { name: "فيروزي", hex: "40E0D0" },
+  { name: "قرمزي", hex: "DC143C" }, { name: "بنفسجي", hex: "8A2BE2" },
+  { name: "أرجواني", hex: "C71585" }, { name: "زمردي", hex: "50C878" },
+  { name: "ياقوتي", hex: "E0115F" }, { name: "نيلي", hex: "4B0082" },
+  { name: "كستنائي", hex: "954535" }, { name: "سماوي", hex: "87CEEB" },
+  { name: "زيتوني", hex: "808000" }, { name: "مرجاني", hex: "FF7F50" },
+  { name: "خزامي", hex: "E6E6FA" }, { name: "فستقي", hex: "93C572" },
+  { name: "وردي فاتح", hex: "FFB6C1" }, { name: "ليموني", hex: "FFF700" },
+  { name: "عنابي", hex: "800020" }, { name: "لازوردي", hex: "007FFF" },
+  { name: "برونزي", hex: "CD7F32" }, { name: "رمادي داكن", hex: "A9A9A9" },
+  { name: "رمادي فاتح", hex: "D3D3D3" }, { name: "فحمي", hex: "36454F" },
+  { name: "خاكي", hex: "C3B091" }, { name: "أوف وايت", hex: "F8F8FF" },
+  { name: "كريمي", hex: "FFFDD0" }, { name: "طوبي", hex: "B22222" },
+  { name: "زهري", hex: "FF1493" }, { name: "قرفي", hex: "D2691E" },
+  { name: "مرجاني داكن", hex: "CD5C5C" }, { name: "أزرق ملكي", hex: "4169E1" },
+  { name: "أزرق داكن", hex: "00008B" }, { name: "أخضر نعناعي", hex: "98FF98" },
+  { name: "أخضر تفاحي", hex: "8DB600" }, { name: "خوخي", hex: "FFDAB9" },
+  { name: "أرجواني داكن", hex: "301934" }, { name: "نيلي فاتح", hex: "5A4FCF" }
 ];
 
-// تخزين الألوان المستخدمة لكل سيرفر لضمان عدم التكرار مطلقاً
+// تخزين الألوان المستخدمة لكل سيرفر لضمان عدم التكرار
 const usedColorsCache = new Map();
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('game-colors')
-    .setDescription('لعبة تخمين الألوان الصعبة التفاعلية'),
+    .setDescription('لعبة تخمين الألوان الصعبة التفاعلية بالصور المليانة باللون'),
 
   async execute(interaction) {
-    // إعطاء مهلة لتجنب خطأ التفاعل
     await interaction.deferReply();
 
     const guildId = interaction.guild.id;
@@ -55,11 +44,11 @@ module.exports = {
 
     // واجهة البدء
     const startEmbed = new EmbedBuilder()
-      .setColor('#57F287')
-      .setTitle('🎨 لعبة تخمين الألوان الصعبة')
+      .setColor('#2b2d31')
+      .setTitle('🎨 لعبة تخمين الألوان')
       .setDescription(
         'ستبدأ اللعبة الآن تتكون اللعبة من **5 جولات**\n' +
-        'انظر إلى لون الصورة المعروضة واختار اسم اللون الصحيح من الأزرار\n\n' +
+        'انظر إلى صورة اللون المليانة واختر اسم اللون الصحيح من الأزرار!\n\n' +
         '⏱️ الاستعداد للجولة الأولى بعد قليل...'
       );
 
@@ -69,25 +58,24 @@ module.exports = {
     const scores = {};
 
     for (let round = 1; round <= 5; round++) {
-      // تصفية الألوان التي لم تُستخدم بعد في السيرفر
-      let availableColors = allColorsList.filter(c => !usedColors.has(c.name));
+      // تصفية الألوان المتاحة
+      let availableColors = ALL_COLORS_POOL.filter(c => !usedColors.has(c.name));
       
-      // إذا انتهت كافة الألوان المتاحة في السيرفر، يتم إعادة تدويرها تلقائياً
       if (availableColors.length === 0) {
         usedColors.clear();
-        availableColors = [...allColorsList];
+        availableColors = [...ALL_COLORS_POOL];
       }
 
       const targetColor = availableColors[Math.floor(Math.random() * availableColors.length)];
       usedColors.add(targetColor.name);
 
-      // توليد رابط صورة ممتازة وسريعة التحميل باللون المطلوب (PNG)
-      const imageUrl = `https://singlecolorimage.com/get/${targetColor.hex.replace('#', '')}/400x100`;
+      // صورة مستطيل مليان باللون بالكامل (بدون صورة سيرفر وبحجم واضع كبير)
+      const imageUrl = `https://singlecolorimage.com/get/${targetColor.hex}/600x250`;
 
-      // إنشاء 4 خيارات أزرار عشوائية تشمل الخيار الصحيح
+      // خيارات الأزرار الأربعة
       let options = [targetColor.name];
       while (options.length < 4) {
-        const randomOpt = allColorsList[Math.floor(Math.random() * allColorsList.length)].name;
+        const randomOpt = ALL_COLORS_POOL[Math.floor(Math.random() * ALL_COLORS_POOL.length)].name;
         if (!options.includes(randomOpt)) {
           options.push(randomOpt);
         }
@@ -104,10 +92,10 @@ module.exports = {
       );
 
       const roundEmbed = new EmbedBuilder()
-        .setColor(targetColor.hex)
+        .setColor(`#${targetColor.hex}`)
         .setTitle(`⭐ تخمين اللون - الجولة [${round} من 5]`)
-        .setDescription('ما هو اسم هذا اللون المعروض في الصورة أدناه؟\n\n⏱️ لديك 15 ثانية للإجابة!')
-        .setImage(imageUrl);
+        .setDescription('ما هو اسم هذا اللون الموضّح في الصورة؟\n\n⏱️ لديك 15 ثانية للإجابة!')
+        .setImage(imageUrl); // صورة مليانة باللون فقط
 
       const roundMsg = await interaction.channel.send({ embeds: [roundEmbed], components: [row] });
 
