@@ -95,7 +95,7 @@ module.exports = {
           .setColor('#5865F2')
           .setTitle(`الجولة ${round}/15`)
           .setDescription('اكتب الكلمة الموضحة في الصورة بأسرع ما يمكن')
-          .setThumbnail(guildIcon); // صورة السيرفر بدلاً من Ventra
+          .setThumbnail(guildIcon); // صورة السيرفر بدلاً من Aure
 
         const roundMsg = await interaction.channel.send({ 
           content: `📷 **الكلمة المطلوبة هي:** \` ${randomWord} \` (اكتبها في الشات الآن!)`,

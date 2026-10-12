@@ -68,7 +68,7 @@ module.exports = {
           { name: '👤 طلب بواسطة', value: `${interaction.user}`, inline: false }
         )
         .setTimestamp()
-        .setFooter({ text: 'VENTRA Bot • ScriptBlox Engine', iconURL: interaction.client.user.displayAvatarURL() });
+        .setFooter({ text: 'Aure Bot • ScriptBlox Engine', iconURL: interaction.client.user.displayAvatarURL() });
 
       if (imageUrl) {
         embed.setThumbnail(imageUrl);

