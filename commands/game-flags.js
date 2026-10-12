@@ -1,4 +1,4 @@
-\const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 // قائمة شاملة لجميع دول العالم مع الرمز الكودي لخدمة الصور المباشرة HD High-Resolution Flags
 const ALL_FLAGS = [
