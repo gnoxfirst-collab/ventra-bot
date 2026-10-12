@@ -1,37 +1,37 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
-// قائمة ضخمة وشاملة لأغلب الألوان والتدرجات الصعبة
+// قائمة للألوان وتدرجاتها الصعبة مع استبدال SVG بصور PNG واضحة ومباشرة
 const allColorsList = [
-  { name: "عنبري", url: "https://www.thecolorapi.com/id?format=svg&hex=FFBF00" },
-  { name: "خردلي", url: "https://www.thecolorapi.com/id?format=svg&hex=FFDB58" },
-  { name: "مشمشي", url: "https://www.thecolorapi.com/id?format=svg&hex=FBCEB1" },
-  { name: "عسلي", url: "https://www.thecolorapi.com/id?format=svg&hex=D4AF37" },
-  { name: "ذهبي", url: "https://www.thecolorapi.com/id?format=svg&hex=FFD700" },
-  { name: "فيروزي", url: "https://www.thecolorapi.com/id?format=svg&hex=40E0D0" },
-  { name: "قرمزي", url: "https://www.thecolorapi.com/id?format=svg&hex=DC143C" },
-  { name: "بنفسجي", url: "https://www.thecolorapi.com/id?format=svg&hex=8A2BE2" },
-  { name: "أرجواني", url: "https://www.thecolorapi.com/id?format=svg&hex=C71585" },
-  { name: "زمردي", url: "https://www.thecolorapi.com/id?format=svg&hex=50C878" },
-  { name: "ياقوتي", url: "https://www.thecolorapi.com/id?format=svg&hex=E0115F" },
-  { name: "نيلي", url: "https://www.thecolorapi.com/id?format=svg&hex=4B0082" },
-  { name: "كستنائي", url: "https://www.thecolorapi.com/id?format=svg&hex=954535" },
-  { name: "سماوي", url: "https://www.thecolorapi.com/id?format=svg&hex=87CEEB" },
-  { name: "زيتوني", url: "https://www.thecolorapi.com/id?format=svg&hex=808000" },
-  { name: "مرجاني", url: "https://www.thecolorapi.com/id?format=svg&hex=FF7F50" },
-  { name: "خزامي", url: "https://www.thecolorapi.com/id?format=svg&hex=E6E6FA" },
-  { name: "فستقي", url: "https://www.thecolorapi.com/id?format=svg&hex=93C572" },
-  { name: "وردي فاتح", url: "https://www.thecolorapi.com/id?format=svg&hex=FFB6C1" },
-  { name: "ليموني", url: "https://www.thecolorapi.com/id?format=svg&hex=FFF700" },
-  { name: "عنابي", url: "https://www.thecolorapi.com/id?format=svg&hex=800020" },
-  { name: "لازوردي", url: "https://www.thecolorapi.com/id?format=svg&hex=007FFF" },
-  { name: "برونزي", url: "https://www.thecolorapi.com/id?format=svg&hex=CD7F32" },
-  { name: "رمادي داكن", url: "https://www.thecolorapi.com/id?format=svg&hex=A9A9A9" },
-  { name: "رمادي فاتح", url: "https://www.thecolorapi.com/id?format=svg&hex=D3D3D3" },
-  { name: "فحمي", url: "https://www.thecolorapi.com/id?format=svg&hex=36454F" },
-  { name: "خاكي", url: "https://www.thecolorapi.com/id?format=svg&hex=C3B091" },
-  { name: "أوف وايت", url: "https://www.thecolorapi.com/id?format=svg&hex=F8F8FF" },
-  { name: "كريمي", url: "https://www.thecolorapi.com/id?format=svg&hex=FFFDD0" },
-  { name: "طوبي", url: "https://www.thecolorapi.com/id?format=svg&hex=B22222" }
+  { name: "عنبري", hex: "#FFBF00" },
+  { name: "خردلي", hex: "#FFDB58" },
+  { name: "مشمشي", hex: "#FBCEB1" },
+  { name: "عسلي", hex: "#D4AF37" },
+  { name: "ذهبي", hex: "#FFD700" },
+  { name: "فيروزي", hex: "#40E0D0" },
+  { name: "قرمزي", hex: "#DC143C" },
+  { name: "بنفسجي", hex: "#8A2BE2" },
+  { name: "أرجواني", hex: "#C71585" },
+  { name: "زمردي", hex: "#50C878" },
+  { name: "ياقوتي", hex: "#E0115F" },
+  { name: "نيلي", hex: "#4B0082" },
+  { name: "كستنائي", hex: "#954535" },
+  { name: "سماوي", hex: "#87CEEB" },
+  { name: "زيتوني", hex: "#808000" },
+  { name: "مرجاني", hex: "#FF7F50" },
+  { name: "خزامي", hex: "#E6E6FA" },
+  { name: "فستقي", hex: "#93C572" },
+  { name: "وردي فاتح", hex: "#FFB6C1" },
+  { name: "ليموني", hex: "#FFF700" },
+  { name: "عنابي", hex: "#800020" },
+  { name: "لازوردي", hex: "#007FFF" },
+  { name: "برونزي", hex: "#CD7F32" },
+  { name: "رمادي داكن", hex: "#A9A9A9" },
+  { name: "رمادي فاتح", hex: "#D3D3D3" },
+  { name: "فحمي", hex: "#36454F" },
+  { name: "خاكي", hex: "#C3B091" },
+  { name: "أوف وايت", hex: "#F8F8FF" },
+  { name: "كريمي", hex: "#FFFDD0" },
+  { name: "طوبي", hex: "#B22222" }
 ];
 
 // تخزين الألوان المستخدمة لكل سيرفر لضمان عدم التكرار مطلقاً
@@ -41,7 +41,11 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('game-colors')
     .setDescription('لعبة تخمين الألوان الصعبة التفاعلية'),
+
   async execute(interaction) {
+    // إعطاء مهلة لتجنب خطأ التفاعل
+    await interaction.deferReply();
+
     const guildId = interaction.guild.id;
 
     if (!usedColorsCache.has(guildId)) {
@@ -56,11 +60,11 @@ module.exports = {
       .setDescription(
         'ستبدأ اللعبة الآن تتكون اللعبة من **5 جولات**\n' +
         'انظر إلى لون الصورة المعروضة واختار اسم اللون الصحيح من الأزرار\n\n' +
-        '⏱️ الاستعداد للجولة الأولى بعد قليل'
+        '⏱️ الاستعداد للجولة الأولى بعد قليل...'
       );
 
-    await interaction.reply({ embeds: [startEmbed] });
-    await new Promise(resolve => setTimeout(resolve, 4000));
+    await interaction.editReply({ embeds: [startEmbed] });
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     const scores = {};
 
@@ -76,6 +80,9 @@ module.exports = {
 
       const targetColor = availableColors[Math.floor(Math.random() * availableColors.length)];
       usedColors.add(targetColor.name);
+
+      // توليد رابط صورة ممتازة وسريعة التحميل باللون المطلوب (PNG)
+      const imageUrl = `https://singlecolorimage.com/get/${targetColor.hex.replace('#', '')}/400x100`;
 
       // إنشاء 4 خيارات أزرار عشوائية تشمل الخيار الصحيح
       let options = [targetColor.name];
@@ -97,10 +104,10 @@ module.exports = {
       );
 
       const roundEmbed = new EmbedBuilder()
-        .setColor('#FEE75C')
+        .setColor(targetColor.hex)
         .setTitle(`⭐ تخمين اللون - الجولة [${round} من 5]`)
         .setDescription('ما هو اسم هذا اللون المعروض في الصورة أدناه؟\n\n⏱️ لديك 15 ثانية للإجابة!')
-        .setImage(targetColor.url);
+        .setImage(imageUrl);
 
       const roundMsg = await interaction.channel.send({ embeds: [roundEmbed], components: [row] });
 
@@ -109,33 +116,36 @@ module.exports = {
 
       const collector = roundMsg.createMessageComponentCollector({ time: 15000 });
 
-      collector.on('collect', async i => {
-        const userId = i.user.id;
-        const selectedOption = i.customId.replace('color_', '');
+      await new Promise(resolve => {
+        collector.on('collect', async i => {
+          const userId = i.user.id;
+          const selectedOption = i.customId.replace('color_', '');
 
-        if (wrongUsersInRound.has(userId)) {
-          return await i.reply({ content: '❌ لقد شاركت بالفعل في هذه الجولة بأجوبة خاطئة', ephemeral: true });
-        }
+          if (wrongUsersInRound.has(userId)) {
+            return await i.reply({ content: '❌ لقد شاركت بالفعل في هذه الجولة بأجوبة خاطئة', ephemeral: true });
+          }
 
-        if (selectedOption === targetColor.name && !answeredCorrectly) {
-          answeredCorrectly = true;
-          scores[userId] = (scores[userId] || 0) + 1;
-          collector.stop();
+          if (selectedOption === targetColor.name && !answeredCorrectly) {
+            answeredCorrectly = true;
+            scores[userId] = (scores[userId] || 0) + 1;
+            collector.stop();
 
-          await i.update({ content: `✅ إجابة صحيحة من <@${userId}> اللون كان **${targetColor.name}** 🎉`, embeds: [], components: [] });
-        } else {
-          wrongUsersInRound.add(userId);
-          await i.reply({ content: '❌ إجابة خاطئة! لقد تم استبعادك من المحاولات في هذه الجولة', ephemeral: true });
-        }
+            await i.update({ content: `✅ إجابة صحيحة من <@${userId}>! اللون كان **${targetColor.name}** 🎉`, embeds: [], components: [] });
+          } else {
+            wrongUsersInRound.add(userId);
+            await i.reply({ content: '❌ إجابة خاطئة! لقد تم استبعادك من المحاولات في هذه الجولة', ephemeral: true });
+          }
+        });
+
+        collector.on('end', async () => {
+          if (!answeredCorrectly) {
+            await roundMsg.edit({ content: `⏰ انتهى الوقت ولم ينجح أحد في تخمين اللون!\n🎨 اللون الصحيح كان: **${targetColor.name}**`, embeds: [], components: [] }).catch(() => {});
+          }
+          resolve();
+        });
       });
 
-      collector.on('end', async collected => {
-        if (!answeredCorrectly) {
-          await roundMsg.edit({ content: `⏰ انتهى الوقت لم ينجح أحد في تخمين اللون\n🎨 اللون الصحيح كان ${targetColor.name}`, embeds: [], components: [] }).catch(() => {});
-        }
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 16000));
+      await new Promise(res => setTimeout(res, 2000));
     }
 
     // عرض شاشة النتائج والمراكز النهائية
@@ -157,8 +167,9 @@ module.exports = {
 
     const finalEmbed = new EmbedBuilder()
       .setColor('#FFFF00')
-      .setTitle('🏆 انتهت لعبةُ الألوان')
-      .setDescription(`**النتائجُ النهائيّةُ للمُتسابقينَ** 🏆\n\n${resultsText}`);
+      .setTitle('🏆 انتهت لعبة الألوان')
+      .setDescription(`**النتائج النهائية للمتسابقين:** 🏆\n\n${resultsText}`)
+      .setTimestamp();
 
     await interaction.channel.send({ embeds: [finalEmbed] });
   },
