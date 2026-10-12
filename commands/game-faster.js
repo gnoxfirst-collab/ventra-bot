@@ -1,5 +1,24 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
+// قائمة ضخمة وعملاقة تضم مئات الكلمات المجهزة للعبة
+const GIANT_WORDS_POOL = [
+  // كلمات تكنولوجيا وبرمجة
+  "كمبيوتر", "برمجة", "تطوير", "فنترا", "ديسكورد", "حاسوب", "شاشة", "لوحة", "سماعة", "هاتف", 
+  "بطارية", "سيرفر", "معالج", "شبكة", "إنترنت", "بيانات", "موقع", "تطبيق", "ذاكرة", "قرص",
+  // كلمات عامة وأدوات
+  "مفتاح", "ممحاة", "صاروخ", "نافذة", "محطة", "مدرسة", "مكتبة", "سيارة", "طائرة", "قطار", 
+  "سفينة", "دراجة", "قلم", "كتاب", "دفتر", "طاولة", "كرسي", "حقيبة", "مصباح", "ساعة",
+  // عناصر وطبيعة وفضاء
+  "قمر", "شمس", "كوكب", "مجرة", "فضاء", "عاصفة", "محيط", "بحيرة", "بركان", "صحراء", 
+  "غابة", "شلال", "شجرة", "زهور", "ينابيع", "سحاب", "مطر", "ثلج", "ضباب", "كوارث",
+  // مدن ودول
+  "كابل", "القاهرة", "الرياض", "دبي", "بغداد", "دمشق", "عمان", "القدس", "بيروت", "تونس", 
+  "الجزائر", "الرباط", "الخرطوم", "مكة", "المدينة", "الدوحة", "الكويت", "المنامة", "مسقط", "صنعاء",
+  // صفات وأفعال وكلمات متنوعة
+  "سرعة", "تحدي", "انتصار", "بطولة", "تركيز", "ذكاء", "حكمة", "شجاعة", "طاقة", "حماس", 
+  "ابتكار", "إبداع", "عبقري", "أسطورة", "مغامرة", "سباق", "مواجهة", "تكتيك", "مهارة", "احتراف"
+];
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('game-faster')
@@ -8,18 +27,19 @@ module.exports = {
   async execute(interaction) {
     const guildIcon = interaction.guild?.iconURL({ dynamic: true }) || interaction.client.user.displayAvatarURL();
 
-    // رسالة الواجهة الأولية
+    // رسالة الواجهة الأولية للانضمام
     const embed = new EmbedBuilder()
-      .setColor('#7289DA')
+      .setColor('#2b2d31')
       .setTitle('⭐ لعبة أسرع كتابة')
       .setDescription(
         '**كيفية اللعب**\n' +
-        'اضغط على زر دخول للمشاركة\n' +
-        'ستظهر كلمة ويجب عليك كتابتها بأسرع ما يمكن للحصول على نقطة\n\n' +
+        'اضغط على زر "دخول للعبة" للمشاركة\n' +
+        'ستظهر كلمة ويجب عليك كتابتها بأسرع ما يمكن في الشات للحصول على نقطة\n\n' +
         '⏱️ لديك **30 ثانية** للانضمام\n\n' +
         '**اللاعبين (0)**\n' +
         'لا يوجد أحد بعد'
-      );
+      )
+      .setThumbnail(guildIcon);
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -49,16 +69,17 @@ module.exports = {
         : 'لا يوجد أحد بعد';
 
       const updatedEmbed = new EmbedBuilder()
-        .setColor('#7289DA')
+        .setColor('#2b2d31')
         .setTitle('⭐ لعبة أسرع كتابة')
         .setDescription(
           '**كيفية اللعب**\n' +
-          'اضغط على زر دخول للمشاركة\n' +
-          'ستظهر كلمة ويجب عليك كتابتها بأسرع ما يمكن للحصول على نقطة\n\n' +
+          'اضغط على زر "دخول للعبة" للمشاركة\n' +
+          'ستظهر كلمة ويجب عليك كتابتها بأسرع ما يمكن في الشات للحصول على نقطة\n\n' +
           '⏱️ لديك **30 ثانية** للانضمام\n\n' +
           `**اللاعبين (${players.size})**\n` +
           playerListText
-        );
+        )
+        .setThumbnail(guildIcon);
 
       await i.update({ embeds: [updatedEmbed] }).catch(() => {});
     });
@@ -74,18 +95,8 @@ module.exports = {
 
       await interaction.editReply({ components: [] }).catch(() => {});
 
-      // قائمة كلمات متنوعة بدون تكرار
-      const dynamicWordsPool = [
-        "بطارية", "ممحاة", "كمبيوتر", "برمجة", "تطوير",
-        "سيارة", "طائرة", "مدرسة", "محطة", "نافذة",
-        "شاشة", "لوحة", "سماعة", "مكتبة", "طبيعة",
-        "صاروخ", "مفتاح", "هاتف", "قمر", "شمس",
-        "رياضة", "تاريخ", "فضاء", "تحكم", "حاسوب",
-        "مملكة", "محيط", "كوكب", "جامعة", "عاصفة"
-      ];
-
-      // خلط الكلمات عشوائياً واختيار 15 كلمة غير مكررة
-      const shuffledWords = dynamicWordsPool.sort(() => Math.random() - 0.5);
+      // خلط القائمة الضخمة عشوائياً لضمان عدم تكرار الكلمات
+      const shuffledWords = [...GIANT_WORDS_POOL].sort(() => Math.random() - 0.5);
 
       const scores = {};
       for (const id of players) {
@@ -93,16 +104,19 @@ module.exports = {
       }
 
       for (let round = 1; round <= 15; round++) {
-        const randomWord = shuffledWords[round - 1];
+        const randomWord = shuffledWords[(round - 1) % shuffledWords.length];
 
+        // تصميم الإمبيد المطابق للصور
         const roundEmbed = new EmbedBuilder()
-          .setColor('#5865F2')
-          .setTitle(`🎮 الجولة ${round}/15`)
-          .setDescription(`اكتب الكلمة الموضحة أسفله بأسرع ما يمكن!`)
-          .setThumbnail(guildIcon);
+          .setColor('#2b2d31')
+          .setThumbnail(guildIcon)
+          .setDescription(
+            `\n# ${randomWord}\n\n` +
+            `اكتب الكلمة الموضحة أعلاه بأسرع ما يمكن`
+          );
 
         await interaction.channel.send({ 
-          content: `📷 **الكلمة المطلوبة هي:** \` ${randomWord} \` (اكتبها في الشات الآن!)`,
+          content: `🎮 **الجولة [${round} من 15]**`,
           embeds: [roundEmbed] 
         });
 
@@ -114,27 +128,33 @@ module.exports = {
           const winnerId = winnerMsg.author.id;
           scores[winnerId] = (scores[winnerId] || 0) + 1;
 
-          await interaction.channel.send(`🎉 إجابة صحيحة! حصل <@${winnerId}> على نقطة.`);
+          await interaction.channel.send(`🎉 كفو <@${winnerId}>! سبقت الجميع وحصلت على نقطة.`);
         } catch (err) {
-          await interaction.channel.send(`⏰ انتهى وقت الجولة! الكلمة الصحيحة كانت: **${randomWord}**`);
+          await interaction.channel.send(`⏰ انتهى الوقت! الكلمة الصحيحة كانت: **${randomWord}**`);
         }
 
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
 
-      // حساب وعرض النتائج النهائية
-      let finalResult = '🏆 **انتهت اللعبة! نتائج اللاعبين:**\n\n';
-      for (const [id, score] of Object.entries(scores)) {
-        finalResult += `<@${id}>: **${score}** نقاط\n`;
-      }
+      // عرض النتائج النهائية
+      const sortedPlayers = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+      let resultsText = '';
+      
+      sortedPlayers.forEach(([id, score], index) => {
+        let medal = '🏅';
+        if (index === 0) medal = '🥇';
+        else if (index === 1) medal = '🥈';
+        else if (index === 2) medal = '🥉';
+        resultsText += `${medal} <@${id}> — **${score}** نقطة\n`;
+      });
 
-      const resultEmbed = new EmbedBuilder()
-        .setColor('#00FF7F')
-        .setTitle('🏅 النتائج النهائية')
-        .setDescription(finalResult)
+      const finalEmbed = new EmbedBuilder()
+        .setColor('#57F287')
+        .setTitle('🏆 انتهت لعبة أسرع كتابة - النتائج النهائية')
+        .setDescription(resultsText)
         .setTimestamp();
 
-      await interaction.channel.send({ embeds: [resultEmbed] });
+      await interaction.channel.send({ embeds: [finalEmbed] });
     });
   },
 };
