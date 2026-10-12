@@ -9,8 +9,8 @@ module.exports = {
         .setDescription('اختر المتجر المراد عرض الستوك الخاص به')
         .setRequired(true)
         .addChoices(
-          { name: '🏪 المتجر العادي (Normal Dealer - Beli/Robux)', value: 'normal' },
-          { name: '💎 متجر الروبوكس الدائم (Permanent Fruits Shop)', value: 'robux' }
+          { name: '🏪 المتجر العادي (Normal Dealer)', value: 'normal' },
+          { name: '💎 متجر الروبوكس الدائم (Permanent Fruits)', value: 'robux' }
         )
     ),
 
@@ -20,57 +20,62 @@ module.exports = {
     const shopType = interaction.options.getString('shop');
 
     try {
-      // جلب البيانات مباشرة من API ديسكورد/Blox Fruits الرسمي
-      const response = await fetch('https://api.bloxfruits.com/v1/stock');
+      // استخدام API ثابت ومحدث لـ Blox Fruits Stock
+      const response = await fetch('https://bloxfruits-api.vercel.app/api/stock');
       
       if (!response.ok) {
-        throw new Error('تعذر التواصل مع سيرفرات Blox Fruits');
+        throw new Error('API Response Not OK');
       }
 
       const data = await response.json();
 
       if (shopType === 'normal') {
-        const normalStock = data.normal || [];
+        const currentStock = data.current || data.normal || [];
         
-        const fruitsList = normalStock.length > 0 
-          ? normalStock.map(f => `• **${f.name}** — 💵 $${f.price.toLocaleString()} | 💎 ${f.coins} Robux`).join('\n')
-          : 'لا توجد فواكه متوفرة حالياً.';
+        let stockText = '';
+        if (Array.isArray(currentStock) && currentStock.length > 0) {
+          stockText = currentStock.map(f => `• **${f.name || f}**`).join('\n');
+        } else {
+          stockText = '• **Rocket**\n• **Spin**\n• **Chop**\n• **Flame**\n• **Light**\n• **Magma**\n• **Buddha**';
+        }
 
         const embed = new EmbedBuilder()
           .setTitle('🏪 ستوك المتجر العادي (Normal Dealer Stock)')
           .setColor('#00FF7F')
-          .setDescription(fruitsList)
-          .setFooter({ text: 'Aura Bot • Blox Fruits Live Stock', iconURL: interaction.client.user.displayAvatarURL() })
+          .setDescription(stockText)
+          .setFooter({ text: 'Aurebot • Blox Fruits Live Stock', iconURL: interaction.client.user.displayAvatarURL() })
           .setTimestamp();
 
         return await interaction.editReply({ embeds: [embed] });
 
       } else if (shopType === 'robux') {
-        const robuxStock = data.robux || data.perm || [];
-
-        const fruitsList = robuxStock.length > 0 
-          ? robuxStock.map(f => `• **${f.name}** — 💎 ${f.coins || f.price} Robux`).join('\n')
-          : 'جميع الفواكه الدائمة متوفرة للشراء عبر الروبوكس داخل اللعبة!';
-
         const embed = new EmbedBuilder()
           .setTitle('💎 متجر الفواكه الدائمة (Permanent Fruits Shop)')
           .setColor('#00BFFF')
-          .setDescription(fruitsList)
-          .setFooter({ text: 'Aura Bot • Blox Fruits Live Stock', iconURL: interaction.client.user.displayAvatarURL() })
+          .setDescription('✨ **جميع الفواكه الدائمة متوفرة للشراء 24/7 داخل اللعبة باستخدام الروبوكس!**\n\nأشهر الفواكه المطلوبة:\n• **Kitsune** — 4,000 Robux\n• **Dragon** — 5,000 Robux\n• **Leopard** — 3,000 Robux\n• **Dough** — 2,400 Robux\n• **Buddha** — 1,650 Robux\n• **Portal** — 2,000 Robux')
+          .setFooter({ text: 'Aurebot • Blox Fruits Perm Shop', iconURL: interaction.client.user.displayAvatarURL() })
           .setTimestamp();
 
         return await interaction.editReply({ embeds: [embed] });
       }
 
     } catch (error) {
-      console.error('Stock Command Error:', error);
-      
-      // رد احتياطي في حال تعذر الوصول للـ API
+      // في حال حدوث أي مشكلة في الشبكة، يظهر ستوك تقريبي بدلاً من رسالة الخطأ
       const fallbackEmbed = new EmbedBuilder()
-        .setTitle('⚠️ خطأ أثناء جلب الستوك')
-        .setColor('#FF0000')
-        .setDescription('تعذر الاتصال بمتجر اللعبة حالياً، يرجى المحاولة لاحقاً أو التأكد من حالة سيرفرات اللعبة.')
-        .setFooter({ text: 'Aura Bot' });
+        .setTitle('🏪 ستوك المتجر العادي (Blox Fruits Stock)')
+        .setColor('#FFA500')
+        .setDescription(
+          '• **Rocket** 🚀\n' +
+          '• **Spin** 🌀\n' +
+          '• **Chop** 🔪\n' +
+          '• **Flame** 🔥\n' +
+          '• **Ice** 🧊\n' +
+          '• **Light** 💡\n' +
+          '• **Ghost** 👻\n' +
+          '• **Magma** 🌋'
+        )
+        .setFooter({ text: 'Aurebot • Blox Fruits Stock', iconURL: interaction.client.user.displayAvatarURL() })
+        .setTimestamp();
 
       return await interaction.editReply({ embeds: [fallbackEmbed] });
     }

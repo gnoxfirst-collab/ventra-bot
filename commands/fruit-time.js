@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-// قائمة الفواكه ومواعيد تجديد المتجر العادي (كل 4 ساعات)
-const FRUITS_LIST = [
+const FRUITS_PART_1 = [
   { name: 'Rocket 🚀', value: 'Rocket' },
   { name: 'Spin 🌀', value: 'Spin' },
   { name: 'Chop 🔪', value: 'Chop' },
@@ -18,6 +17,7 @@ const FRUITS_LIST = [
   { name: 'Light 💡', value: 'Light' },
   { name: 'Rubber 🥊', value: 'Rubber' },
   { name: 'Barrier 🛡️', value: 'Barrier' },
+  { name: 'Ghost 👻', value: 'Ghost' },
   { name: 'Magma 🌋', value: 'Magma' },
   { name: 'Quake 🫨', value: 'Quake' },
   { name: 'Buddha 🧘', value: 'Buddha' },
@@ -25,7 +25,10 @@ const FRUITS_LIST = [
   { name: 'Spider 🕷️', value: 'Spider' },
   { name: 'Sound 🎵', value: 'Sound' },
   { name: 'Phoenix 🐦‍🔥', value: 'Phoenix' },
-  { name: 'Portal 🌀', value: 'Portal' },
+  { name: 'Portal 🌀', value: 'Portal' }
+];
+
+const FRUITS_PART_2 = [
   { name: 'Rumble ⚡', value: 'Rumble' },
   { name: 'Pain 💢', value: 'Pain' },
   { name: 'Blizzard ❄️', value: 'Blizzard' },
@@ -46,36 +49,43 @@ const FRUITS_LIST = [
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('fruit-time')
-    .setDescription('معرفة موعد نزول فاكهة محددة وتوقيت تجديد المتجر في Blox Fruits')
+    .setDescription('معرفة تجديد المتجر. لو ملقتش فاكهتك في fruit روح لاوبشن fruit2')
     .addStringOption(option =>
       option.setName('shop')
         .setDescription('اختر نوع المتجر')
         .setRequired(true)
         .addChoices(
           { name: '🏪 المتجر العادي (Normal Dealer)', value: 'normal' },
-          { name: '💎 متجر الروبوكس/الفواكه الدائمة (Robux / Perm Shop)', value: 'robux' }
+          { name: '💎 متجر الروبوكس (Permanent Shop)', value: 'robux' }
         )
     )
     .addStringOption(option => {
       option.setName('fruit')
-        .setDescription('اختر الفاكهة اللي عايز تعرف موعدها')
-        .setRequired(true);
-      
-      // إضافة أول 25 فاكهة متوافقة مع حد ديسكورد للأخيار المباشر
-      FRUITS_LIST.slice(0, 25).forEach(f => {
-        option.addChoices({ name: f.name, value: f.value });
-      });
+        .setDescription('الفواكه (الجزء الأول) - اختياري')
+        .setRequired(false);
+      FRUITS_PART_1.forEach(f => option.addChoices(f));
+      return option;
+    })
+    .addStringOption(option => {
+      option.setName('fruit2')
+        .setDescription('الفواكه (الجزء الثاني) - اختياري')
+        .setRequired(false);
+      FRUITS_PART_2.forEach(f => option.addChoices(f));
       return option;
     }),
 
   async execute(interaction) {
-    const selectedShop = interaction.options.getString('shop');
-    const selectedFruit = interaction.options.getString('fruit');
+    await interaction.deferReply();
 
-    // حساب موعد تجديد المتجر القادم (متجر Blox Fruits بيتجدد كل 4 ساعات بالعالم)
+    const selectedShop = interaction.options.getString('shop');
+    const fruit1 = interaction.options.getString('fruit');
+    const fruit2 = interaction.options.getString('fruit2');
+
+    const selectedFruit = fruit1 || fruit2 || 'جميع الفواكه (استعلام عام)';
+
     const now = new Date();
     const currentHour = now.getUTCHours();
-    const nextRestockHour = Math.ceil((currentHour + 1) / 4) * 4;
+    const nextRestockHour = Math.ceil((currentHour + 0.001) / 4) * 4;
     
     const nextRestockDate = new Date(now);
     nextRestockDate.setUTCHours(nextRestockHour % 24, 0, 0, 0);
@@ -87,33 +97,34 @@ module.exports = {
 
     if (selectedShop === 'normal') {
       const embed = new EmbedBuilder()
-        .setTitle(`🏪 موعد تجديد المتجر العادي — فاكهة [ ${selectedFruit} ]`)
+        .setTitle(`🏪 موعد تجديد المتجر العادي — [ ${selectedFruit} ]`)
         .setColor('#FFA500')
         .setDescription(
           `🍎 **الفاكهة المحددة:** \`${selectedFruit}\`\n` +
           `🛒 **نوع المتجر:** المتجر العادي (Normal Dealer)\n\n` +
-          `⏰ **تجديد المتجر القادم (Restock):** <t:${unixTime}:F> (<t:${unixTime}:R>)\n\n` +
-          `💡 **ملاحظة:** نزول الفواكه في المتجر العادي يكون **عشوائي (RNG)** كل 4 ساعات. استعد للتفقد في التوقيت الموضح أعلاه!`
+          `⏰ **موعد تجديد المتجر القادم (Restock):**\n` +
+          `<t:${unixTime}:F> (<t:${unixTime}:R>)\n\n` +
+          `💡 **ملاحظة:** نزول الفواكه في المتجر العادي يكون عشوائياً كل 4 ساعات.`
         )
-        .setFooter({ text: 'Aura Bot • Blox Fruits Restock System', iconURL: interaction.client.user.displayAvatarURL() })
+        .setFooter({ text: 'Aurebot • Blox Fruits Restock System', iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
 
-      return await interaction.reply({ embeds: [embed] });
+      return await interaction.editReply({ embeds: [embed] });
 
     } else if (selectedShop === 'robux') {
       const embed = new EmbedBuilder()
-        .setTitle(`💎 متجر الروبوكس (Permanent Shop) — فاكهة [ ${selectedFruit} ]`)
+        .setTitle(`💎 متجر الروبوكس (Permanent Shop) — [ ${selectedFruit} ]`)
         .setColor('#00BFFF')
         .setDescription(
           `🍎 **الفاكهة المحددة:** \`${selectedFruit}\`\n` +
-          `💳 **نوع المتجر:** متجر الروبوكس الدائم (Perm Fruits)\n\n` +
+          `💳 **نوع المتجر:** متجر الروبوكس الدائم (Permanent Fruits)\n\n` +
           `✨ **الوقت والتوفر:** **متوفرة حالياً 24/7!**\n` +
-          `فواكه الروبوكس الدائمة متواجدة دائماً في المتجر ويمكنك شؤاؤها في أي وقت دون الانتظار!`
+          `فواكه الروبوكس الدائمة متواجدة دائماً في متجر اللعبة ويمكنك شراؤها في أي وقت دون إنتظار.`
         )
-        .setFooter({ text: 'Aura Bot • Blox Fruits Perm Shop', iconURL: interaction.client.user.displayAvatarURL() })
+        .setFooter({ text: 'Aurebot • Blox Fruits Perm Shop', iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
 
-      return await interaction.reply({ embeds: [embed] });
+      return await interaction.editReply({ embeds: [embed] });
     }
   }
 };
