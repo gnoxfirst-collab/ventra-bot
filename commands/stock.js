@@ -43,7 +43,7 @@ module.exports = {
           .setTitle('🏪 ستوك المتجر العادي (Normal Dealer Stock)')
           .setColor('#00FF7F')
           .setDescription(stockText)
-          .setFooter({ text: 'Aurebot • Blox Fruits Live Stock', iconURL: interaction.client.user.displayAvatarURL() })
+          .setFooter({ text: 'Time • Blox Fruits Live Stock', iconURL: interaction.client.user.displayAvatarURL() })
           .setTimestamp();
 
         return await interaction.editReply({ embeds: [embed] });
@@ -53,7 +53,7 @@ module.exports = {
           .setTitle('💎 متجر الفواكه الدائمة (Permanent Fruits Shop)')
           .setColor('#00BFFF')
           .setDescription('✨ **جميع الفواكه الدائمة متوفرة للشراء 24/7 داخل اللعبة باستخدام الروبوكس!**\n\nأشهر الفواكه المطلوبة:\n• **Kitsune** — 4,000 Robux\n• **Dragon** — 5,000 Robux\n• **Leopard** — 3,000 Robux\n• **Dough** — 2,400 Robux\n• **Buddha** — 1,650 Robux\n• **Portal** — 2,000 Robux')
-          .setFooter({ text: 'Aurebot • Blox Fruits Perm Shop', iconURL: interaction.client.user.displayAvatarURL() })
+          .setFooter({ text: 'Time • Blox Fruits Perm Shop', iconURL: interaction.client.user.displayAvatarURL() })
           .setTimestamp();
 
         return await interaction.editReply({ embeds: [embed] });
@@ -74,7 +74,7 @@ module.exports = {
           '• **Ghost** 👻\n' +
           '• **Magma** 🌋'
         )
-        .setFooter({ text: 'Aurebot • Blox Fruits Stock', iconURL: interaction.client.user.displayAvatarURL() })
+        .setFooter({ text: 'Time • Blox Fruits Stock', iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
 
       return await interaction.editReply({ embeds: [fallbackEmbed] });

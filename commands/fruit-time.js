@@ -106,7 +106,7 @@ module.exports = {
           `<t:${unixTime}:F> (<t:${unixTime}:R>)\n\n` +
           `💡 **ملاحظة:** نزول الفواكه في المتجر العادي يكون عشوائياً كل 4 ساعات.`
         )
-        .setFooter({ text: 'Aurebot • Blox Fruits Restock System', iconURL: interaction.client.user.displayAvatarURL() })
+        .setFooter({ text: 'Time • Blox Fruits Restock System', iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
 
       return await interaction.editReply({ embeds: [embed] });
@@ -121,7 +121,7 @@ module.exports = {
           `✨ **الوقت والتوفر:** **متوفرة حالياً 24/7!**\n` +
           `فواكه الروبوكس الدائمة متواجدة دائماً في متجر اللعبة ويمكنك شراؤها في أي وقت دون إنتظار.`
         )
-        .setFooter({ text: 'Aurebot • Blox Fruits Perm Shop', iconURL: interaction.client.user.displayAvatarURL() })
+        .setFooter({ text: 'Time • Blox Fruits Perm Shop', iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
 
       return await interaction.editReply({ embeds: [embed] });
