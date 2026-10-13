@@ -1,17 +1,43 @@
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+require('dotenv').config(); // تحميل متغيرات البيئة من ملف .env
 
-// قراءة التوكن والـ ClientId سواء محلياً أو من متغيرات البيئة في المنصة
-let token, clientId;
-try {
-  const configFile = require('./config.json');
-  token = configFile.token;
-  clientId = configFile.clientId;
-} catch (error) {
-  token = process.env.TOKEN;
-  clientId = process.env.CLIENT_ID;
+// جلب التوكنين من ملف .env
+const token1 = process.env.TOKEN_BOT1;
+const token2 = process.env.TOKEN_BOT2;
+
+// ... (باقي كود إعدادات البوت والـ Intents كما هو بدون تغيير)
+
+// تشغيل البوت الأول
+if (token1) {
+  client.login(token1).then(() => {
+    console.log(`[Bot 1] تم تسجيل الدخول بنجاح!`);
+  }).catch(err => console.error('[Bot 1] خطأ في تسجيل الدخول:', err));
+}
+
+// تشغيل البوت الثاني (بنسخة عميل جديدة منفصلة تماماً لتجنب التداخل)
+if (token2) {
+  const { Client: Client2, GatewayIntentBits: Intents2 } = require('discord.js');
+  const client2 = new Client2({ intents: [Intents2.Guilds, Intents2.GuildMessages, Intents2.MessageContent, Intents2.GuildMembers] });
+  
+  // نفس الأوامر والتعاملات للبوت الثاني
+  client2.commands = client.commands;
+  
+  client2.on('ready', () => {
+    console.log(`[Bot 2] تم تسجيل الدخول بنجاح باسم: ${client2.user.tag}`);
+  });
+
+  // نسخ معالجات التفاعل والأحداث للبوت الثاني
+  client2.on('interactionCreate', async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+    const command = client2.commands.get(interaction.commandName);
+    if (!command) return;
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  client2.login(token2).catch(err => console.error('[Bot 2] خطأ في تسجيل الدخول:', err));
 }
 
 const client = new Client({
