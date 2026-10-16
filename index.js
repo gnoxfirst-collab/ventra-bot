@@ -1,114 +1,105 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, ChannelType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline');
 
-// قراءة التوكنات من ملف البيئة .env
 const token1 = process.env.TOKEN_BOT1;
 const token2 = process.env.TOKEN_BOT2;
 
-// قراءة الأوامر مرة واحدة لتستخدمها البوتات
+// قراءة الأوامر
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-const botCommands = [];
-const commandNames = new Set();
 const discordCommandsCollection = new Collection();
 
 for (const file of commandFiles) {
   const filePath = path.join(commandsPath, file);
   const command = require(filePath);
   if ('data' in command && 'execute' in command) {
-    if (commandNames.has(command.data.name)) continue;
-    commandNames.add(command.data.name);
     discordCommandsCollection.set(command.data.name, command);
-    botCommands.push(command.data.toJSON());
   }
 }
 
-// ==========================================
-// 1. إعداد وتشغيل البوت الأول (Client 1)
-// ==========================================
-if (token1) {
-  const client1 = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
-      GatewayIntentBits.GuildMembers
-    ],
-    rest: { timeout: 30000 }
-  });
-
-  client1.commands = discordCommandsCollection;
-
-  client1.on('ready', () => {
-    console.log(`[Bot 1] ✅ شغال أونلاين باسم: ${client1.user.tag}`);
-  });
-
-  client1.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-    const command = client1.commands.get(interaction.commandName);
-    if (!command) return;
-    try {
-      await command.execute(interaction);
-    } catch (error) {
-      console.error(error);
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء تنفيذ الأمر!', ephemeral: true });
-      }
+// دالة آمنة لجلب رابط الدعوة بدون تعطيل الكود
+async function getInviteLink(guild) {
+  try {
+    const textChannel = guild.channels.cache.find(
+      c => c.type === ChannelType.GuildText && c.permissionsFor(guild.members.me)?.has('CreateInstantInvite')
+    );
+    if (textChannel) {
+      const invite = await textChannel.createInvite({ maxAge: 0, maxUses: 0 });
+      return invite.url;
     }
-  });
-
-  client1.login(token1).catch(err => console.error('[Bot 1] ❌ خطأ في تسجيل الدخول:', err));
+  } catch (err) {
+    // تجاهل الخطأ في حال عدم وجود صلاحية
+  }
+  return 'لا توجد صلاحية دعوة';
 }
 
-// ==========================================
-// 2. إعداد وتشغيل البوت الثاني (Client 2)
-// ==========================================
-if (token2) {
-  const client2 = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
-      GatewayIntentBits.GuildMembers
-    ],
-    rest: { timeout: 30000 }
-  });
+// دالة لتشغيل وطباعة بيانات كل بوت بترتيب دقيق
+async function startBot(token, botLabel) {
+  return new Promise((resolve) => {
+    const client = new Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
+      ],
+      rest: { timeout: 30000 }
+    });
 
-  client2.commands = discordCommandsCollection;
+    client.commands = discordCommandsCollection;
 
-  client2.on('ready', () => {
-    console.log(`[Bot 2] ✅ شغال أونلاين باسم: ${client2.user.tag}`);
-  });
+    client.on('ready', async () => {
+      console.log(`بوت (${client.user.tag})`);
+      console.log(`عدد السيرفرات (${client.guilds.cache.size})`);
 
-  client2.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-    const command = client2.commands.get(interaction.commandName);
-    if (!command) return;
-    try {
-      await command.execute(interaction);
-    } catch (error) {
-      console.error(error);
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({ content: '❌ حدث خطأ أثناء تنفيذ الأمر!', ephemeral: true });
+      let index = 1;
+      // استخدام for...of لضمان طباعة السيرفرات بالترتيب وبدون تداخل
+      for (const [, guild] of client.guilds.cache) {
+        const inviteLink = await getInviteLink(guild);
+        console.log(`${index}.${guild.name} ID= ${guild.id} INVIT LINK = ${inviteLink}`);
+        index++;
       }
-    }
-  });
+      console.log('\n-----------------------------------\n');
+      resolve();
+    });
 
-  client2.login(token2).catch(err => console.error('[Bot 2] ❌ خطأ في تسجيل الدخول:', err));
+    client.on('interactionCreate', async interaction => {
+      if (!interaction.isChatInputCommand()) return;
+      const command = client.commands.get(interaction.commandName);
+      if (!command) return;
+      try {
+        await command.execute(interaction);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    client.login(token).catch(err => {
+      console.log(`[${botLabel}] ❌ خطأ في تسجيل الدخول:`, err.message);
+      resolve();
+    });
+  });
 }
 
-// منع البوت من الكراش عند حدوث أخطاء غير متوقعة
-process.on('unhandledRejection', (reason, promise) => {
-    console.log('🔴 خطأ غير معالج:', reason);
-});
+// تشغيل البوتات بالترتيب (البوت الأول ثم الثاني) لمنع تداخل التيرمنال
+async function main() {
+  if (token1) {
+    await startBot(token1, 'Bot 1');
+  } else {
+    console.log('⚠️ TOKEN_BOT1 غير موجود');
+  }
 
-process.on('uncaughtException', (err, origin) => {
-    console.log('🔴 استثناء غير ملتقط:', err);
-});
+  if (token2) {
+    await startBot(token2, 'Bot 2');
+  } else {
+    console.log('⚠️ TOKEN_BOT2 غير موجود');
+  }
+}
 
-process.on('uncaughtExceptionMonitor', (err, origin) => {
-    console.log('🔴 مراقبة الاستثناءات:', err);
-});
+main();
+
+// منع البوت من الكراش
+process.on('unhandledRejection', (reason) => console.log('🔴 خطأ غير معالج:', reason));
+process.on('uncaughtException', (err) => console.log('🔴 استثناء غير ملتقط:', err));
