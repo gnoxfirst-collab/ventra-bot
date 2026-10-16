@@ -15,7 +15,7 @@ for (const file of commandFiles) {
   }
 }
 
-// مصفوفة تعتمد على المتغيرات الموجودة لديك في Railway بالضبط
+// مصفوفة البوتين لتسجيل الأوامر لكليهما باستخدام متغيرات البيئة الخاصة بك في Railway
 const bots = [
   { name: 'Bot 1', token: process.env.TOKEN_BOT1, clientId: process.env.CLIENT_ID },
   { name: 'Bot 2', token: process.env.TOKEN_BOT2, clientId: process.env.CLIENT_ID2 }
