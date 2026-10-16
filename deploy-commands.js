@@ -1,6 +1,7 @@
 const { REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
@@ -14,20 +15,32 @@ for (const file of commandFiles) {
   }
 }
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+// مصفوفة تعتمد على المتغيرات الموجودة لديك في Railway بالضبط
+const bots = [
+  { name: 'Bot 1', token: process.env.TOKEN_BOT1, clientId: process.env.CLIENT_ID },
+  { name: 'Bot 2', token: process.env.TOKEN_BOT2, clientId: process.env.CLIENT_ID2 }
+];
 
 (async () => {
-  try {
-    console.log(`⏳ جاري تسجيل ${commands.length} أمر لدى ديسكورد...`);
+  for (const bot of bots) {
+    if (!bot.token || !bot.clientId) {
+      console.log(`⚠️ تخطي ${bot.name} لعدم توفر التوكن أو الـ Client ID الخاص به.`);
+      continue;
+    }
 
-    // تسجيل الأوامر عامة (Global Commands)
-    await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands },
-    );
+    const rest = new REST({ version: '10' }).setToken(bot.token);
 
-    console.log('✅ تم تسجيل وتحديث كافة الأوامر بنجاح!');
-  } catch (error) {
-    console.error('❌ حدث خطأ أثناء تسجيل الأوامر:', error);
+    try {
+      console.log(`⏳ جاري تسجيل ${commands.length} أمر لـ ${bot.name}...`);
+
+      await rest.put(
+        Routes.applicationCommands(bot.clientId),
+        { body: commands },
+      );
+
+      console.log(`✅ تم تسجيل وتحديث الأوامر لـ ${bot.name} بنجاح!`);
+    } catch (error) {
+      console.error(`❌ حدث خطأ أثناء تسجيل الأوامر لـ ${bot.name}:`, error);
+    }
   }
 })();
