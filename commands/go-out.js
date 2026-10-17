@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
-// استبدل هذا الـ ID الخاص بك (الايدي بتاع حسابك الشخصي على ديسكورد)
 const OWNER_ID = '1463139407967031491';
 
 module.exports = {
@@ -9,11 +8,12 @@ module.exports = {
     .setDescription('يُستخدم لخروج البوت من سيرفر معين (مخصص للمالك فقط)')
     .addStringOption(option =>
       option.setName('bot')
-        .setDescription('اختر البوت المراد إخراجه')
+        .setDescription('اختر اسم البوت المراد إخراجه')
         .setRequired(true)
         .addChoices(
-          { name: 'Bot 1', value: 'bot1' },
-          { name: 'Bot 2', value: 'bot2' }
+          // سيتم تحديث الأسماء هنا لتطابق أسماء بوتاتك الحقيقية
+          { name: 'VENTRA', value: 'bot1' },
+          { name: 'Fire Community', value: 'bot2' }
         )
     )
     .addStringOption(option =>
@@ -37,7 +37,6 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    // التحقق مما إذا كان المستخدم هو أنت فقط
     if (interaction.user.id !== OWNER_ID) {
       return interaction.reply({ content: '❌ عذراً، هذا الأمر مخصص لمالك البوت فقط!', ephemeral: true });
     }
@@ -47,7 +46,6 @@ module.exports = {
     const sendMsg = interaction.options.getString('send_message');
     const msgText = interaction.options.getString('message_text');
 
-    // تحديدClient الخاص بالبوت بناءً على الاختيار
     const client = botChoice === 'bot1' ? interaction.client.client1Ref : interaction.client.client2Ref;
 
     if (!client) {
@@ -56,11 +54,10 @@ module.exports = {
 
     const guild = client.guilds.cache.get(serverId);
     if (!guild) {
-      return interaction.reply({ content: `❌ البوت المطلوب (${botChoice}) ليس موجوداً في السيرفر الذي يحمل الـ ID التالي: \`${serverId}\``, ephemeral: true });
+      return interaction.reply({ content: `❌ البوت ليس موجوداً في السيرفر الذي يحمل الـ ID التالي: \`${serverId}\``, ephemeral: true });
     }
 
     try {
-      // إرسال الرسالة إذا اخترت "نعم" وتم كتابة نص
       if (sendMsg === 'yes' && msgText) {
         const textChannel = guild.channels.cache.find(c => c.type === 0 && c.permissionsFor(guild.members.me)?.has('SendMessages'));
         if (textChannel) {
@@ -68,9 +65,8 @@ module.exports = {
         }
       }
 
-      // مغادرة السيرفر
       await guild.leave();
-      await interaction.reply({ content: `✅ بنجاح، قام البوت (${botChoice}) بمغادرة السيرفر: **${guild.name}**`, ephemeral: true });
+      await interaction.reply({ content: `✅ بنجاح، قام البوت (${client.user.username}) بمغادرة السيرفر: **${guild.name}**`, ephemeral: true });
     } catch (error) {
       console.error(error);
       await interaction.reply({ content: '❌ حدث خطأ أثناء محاولة مغادرة السيرفر.', ephemeral: true });
