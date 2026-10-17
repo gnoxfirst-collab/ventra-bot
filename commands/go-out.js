@@ -1,75 +1,113 @@
-const { SlashCommandBuilder } = require('discord.js');
+require('dotenv').config();
+const { Client, GatewayIntentBits, Collection, ChannelType } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
-const OWNER_ID = '1463139407967031491';
+const token1 = process.env.TOKEN_BOT1;
+const token2 = process.env.TOKEN_BOT2;
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('go-out')
-    .setDescription('يُستخدم لخروج البوت من سيرفر معين (مخصص للمالك فقط)')
-    .addStringOption(option =>
-      option.setName('bot')
-        .setDescription('اختر اسم البوت المراد إخراجه')
-        .setRequired(true)
-        .addChoices(
-          // سيتم تحديث الأسماء هنا لتطابق أسماء بوتاتك الحقيقية
-          { name: 'VENTRA', value: 'bot1' },
-          { name: 'Fire Community', value: 'bot2' }
-        )
-    )
-    .addStringOption(option =>
-      option.setName('server_id')
-        .setDescription('أدخل ايدي (ID) السيرفر المراد مغادرته')
-        .setRequired(true)
-    )
-    .addStringOption(option =>
-      option.setName('send_message')
-        .setDescription('هل تريد إرسال رسالة قبل الخروج؟')
-        .setRequired(true)
-        .addChoices(
-          { name: 'نعم', value: 'yes' },
-          { name: 'لا', value: 'no' }
-        )
-    )
-    .addStringOption(option =>
-      option.setName('message_text')
-        .setDescription('نص الرسالة (إذا اخترت نعم في الخيار السابق)')
-        .setRequired(false)
-    ),
+// مسار مجلد الأوامر
+const commandsPath = path.join(process.cwd(), 'commands');
+const discordCommandsCollection = new Collection();
 
-  async execute(interaction) {
-    if (interaction.user.id !== OWNER_ID) {
-      return interaction.reply({ content: '❌ عذراً، هذا الأمر مخصص لمالك البوت فقط!', ephemeral: true });
+if (fs.existsSync(commandsPath)) {
+  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
+    if ('data' in command && 'execute' in command) {
+      discordCommandsCollection.set(command.data.name, command);
     }
+  }
+} else {
+  console.log('⚠️ مجلد الأوامر (commands) غير موجود، يرجى إنشاؤه.');
+}
 
-    const botChoice = interaction.options.getString('bot');
-    const serverId = interaction.options.getString('server_id');
-    const sendMsg = interaction.options.getString('send_message');
-    const msgText = interaction.options.getString('message_text');
-
-    const client = botChoice === 'bot1' ? interaction.client.client1Ref : interaction.client.client2Ref;
-
-    if (!client) {
-      return interaction.reply({ content: '❌ لم يتم العثور على مرجع البوت المطلوب.', ephemeral: true });
+// دالة آمنة لجلب رابط الدعوة
+async function getInviteLink(guild) {
+  try {
+    const textChannel = guild.channels.cache.find(
+      c => c.type === ChannelType.GuildText && c.permissionsFor(guild.members.me)?.has('CreateInstantInvite')
+    );
+    if (textChannel) {
+      const invite = await textChannel.createInvite({ maxAge: 0, maxUses: 0 });
+      return invite.url;
     }
+  } catch (err) {}
+  return 'لا توجد صلاحية دعوة';
+}
 
-    const guild = client.guilds.cache.get(serverId);
-    if (!guild) {
-      return interaction.reply({ content: `❌ البوت ليس موجوداً في السيرفر الذي يحمل الـ ID التالي: \`${serverId}\``, ephemeral: true });
-    }
+// دالة تشغيل البوت وطباعة بياناته بالطريقة التي طلبها تماماً
+async function startSingleBot(token, botLabel) {
+  return new Promise((resolve) => {
+    const client = new Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
+      ],
+      rest: { timeout: 30000 }
+    });
 
-    try {
-      if (sendMsg === 'yes' && msgText) {
-        const textChannel = guild.channels.cache.find(c => c.type === 0 && c.permissionsFor(guild.members.me)?.has('SendMessages'));
-        if (textChannel) {
-          await textChannel.send(msgText);
+    client.commands = discordCommandsCollection;
+
+    client.on('ready', async () => {
+      // طباعة اسم البوت وتحته عدد السيرفرات وقائمتها بالتنسيق المطلوب
+      console.log(`بوت (${client.user.tag})`);
+      console.log(`عدد السيرفرات (${client.guilds.cache.size})`);
+
+      let index = 1;
+      for (const [, guild] of client.guilds.cache) {
+        const inviteLink = await getInviteLink(guild);
+        console.log(`${index}.${guild.name} ID= ${guild.id} INVIT LINK = ${inviteLink}`);
+        index++;
+      }
+      console.log('-----------------------------------');
+      resolve(client);
+    });
+
+    client.on('interactionCreate', async interaction => {
+      if (!interaction.isChatInputCommand()) return;
+      
+      interaction.client.client1Ref = global.client1Ref;
+      interaction.client.client2Ref = global.client2Ref;
+
+      const command = client.commands.get(interaction.commandName);
+      if (!command) return;
+      try {
+        await command.execute(interaction);
+      } catch (error) {
+        console.error(error);
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: '❌ حدث خطأ أثناء تنفيذ الأمر!', ephemeral: true });
         }
       }
+    });
 
-      await guild.leave();
-      await interaction.reply({ content: `✅ بنجاح، قام البوت (${client.user.username}) بمغادرة السيرفر: **${guild.name}**`, ephemeral: true });
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({ content: '❌ حدث خطأ أثناء محاولة مغادرة السيرفر.', ephemeral: true });
-    }
-  },
-};
+    client.login(token).catch(err => {
+      console.log(`[${botLabel}] ❌ خطأ في تسجيل الدخول:`, err.message);
+      resolve(null);
+    });
+  });
+}
+
+global.client1Ref = null;
+global.client2Ref = null;
+
+async function main() {
+  if (token1) {
+    const client1 = await startSingleBot(token1, 'Bot 1');
+    if (client1) global.client1Ref = client1;
+  }
+
+  if (token2) {
+    const client2 = await startSingleBot(token2, 'Bot 2');
+    if (client2) global.client2Ref = client2;
+  }
+}
+
+main();
+
+process.on('unhandledRejection', (reason) => {});
+process.on('uncaughtException', (err) => {});
