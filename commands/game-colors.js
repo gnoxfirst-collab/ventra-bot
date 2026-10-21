@@ -33,7 +33,11 @@ module.exports = {
     .setDescription('لعبة تخمين الألوان الصعبة التفاعلية بالصور المليانة باللون'),
 
   async execute(interaction) {
-    await interaction.deferReply();
+    if (!interaction.guild || !interaction.channel) {
+      return await interaction.reply({ content: '❌ هذا الأمر يعمل داخل السيرفرات والقنوات المباشرة فقط!', ephemeral: true }).catch(() => {});
+    }
+
+    await interaction.deferReply().catch(() => {});
 
     const guildId = interaction.guild.id;
 
@@ -52,13 +56,12 @@ module.exports = {
         '⏱️ الاستعداد للجولة الأولى بعد قليل...'
       );
 
-    await interaction.editReply({ embeds: [startEmbed] });
+    await interaction.editReply({ embeds: [startEmbed] }).catch(() => {});
     await new Promise(resolve => setTimeout(resolve, 3000));
 
     const scores = {};
 
     for (let round = 1; round <= 5; round++) {
-      // تصفية الألوان المتاحة
       let availableColors = ALL_COLORS_POOL.filter(c => !usedColors.has(c.name));
       
       if (availableColors.length === 0) {
@@ -69,10 +72,8 @@ module.exports = {
       const targetColor = availableColors[Math.floor(Math.random() * availableColors.length)];
       usedColors.add(targetColor.name);
 
-      // صورة مستطيل مليان باللون بالكامل (بدون صورة سيرفر وبحجم واضع كبير)
       const imageUrl = `https://singlecolorimage.com/get/${targetColor.hex}/600x250`;
 
-      // خيارات الأزرار الأربعة
       let options = [targetColor.name];
       while (options.length < 4) {
         const randomOpt = ALL_COLORS_POOL[Math.floor(Math.random() * ALL_COLORS_POOL.length)].name;
@@ -95,9 +96,11 @@ module.exports = {
         .setColor(`#${targetColor.hex}`)
         .setTitle(`⭐ تخمين اللون - الجولة [${round} من 5]`)
         .setDescription('ما هو اسم هذا اللون الموضّح في الصورة؟\n\n⏱️ لديك 15 ثانية للإجابة!')
-        .setImage(imageUrl); // صورة مليانة باللون فقط
+        .setImage(imageUrl);
 
-      const roundMsg = await interaction.channel.send({ embeds: [roundEmbed], components: [row] });
+      const roundMsg = await interaction.followUp({ embeds: [roundEmbed], components: [row], fetchReply: true }).catch(() => null);
+
+      if (!roundMsg) break;
 
       const wrongUsersInRound = new Set();
       let answeredCorrectly = false;
@@ -110,7 +113,7 @@ module.exports = {
           const selectedOption = i.customId.replace('color_', '');
 
           if (wrongUsersInRound.has(userId)) {
-            return await i.reply({ content: '❌ لقد شاركت بالفعل في هذه الجولة بأجوبة خاطئة', ephemeral: true });
+            return await i.reply({ content: '❌ لقد شاركت بالفعل في هذه الجولة بأجوبة خاطئة', ephemeral: true }).catch(() => {});
           }
 
           if (selectedOption === targetColor.name && !answeredCorrectly) {
@@ -118,10 +121,10 @@ module.exports = {
             scores[userId] = (scores[userId] || 0) + 1;
             collector.stop();
 
-            await i.update({ content: `✅ إجابة صحيحة من <@${userId}>! اللون كان **${targetColor.name}** 🎉`, embeds: [], components: [] });
+            await i.update({ content: `✅ إجابة صحيحة من <@${userId}>! اللون كان **${targetColor.name}** 🎉`, embeds: [], components: [] }).catch(() => {});
           } else {
             wrongUsersInRound.add(userId);
-            await i.reply({ content: '❌ إجابة خاطئة! لقد تم استبعادك من المحاولات في هذه الجولة', ephemeral: true });
+            await i.reply({ content: '❌ إجابة خاطئة! لقد تم استبعادك من المحاولات في هذه الجولة', ephemeral: true }).catch(() => {});
           }
         });
 
@@ -159,6 +162,6 @@ module.exports = {
       .setDescription(`**النتائج النهائية للمتسابقين:** 🏆\n\n${resultsText}`)
       .setTimestamp();
 
-    await interaction.channel.send({ embeds: [finalEmbed] });
+    await interaction.followUp({ embeds: [finalEmbed] }).catch(() => {});
   },
 };
