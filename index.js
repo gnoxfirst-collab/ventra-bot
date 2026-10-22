@@ -1,12 +1,11 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Collection, ChannelType, Events } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, ChannelType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
 const token1 = process.env.TOKEN_BOT1;
 const token2 = process.env.TOKEN_BOT2;
 
-// قراءة الأوامر وتخزينها
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 const discordCommandsCollection = new Collection();
@@ -22,11 +21,10 @@ for (const file of commandFiles) {
       loadedCommandNames.push(command.data.name);
     }
   } catch (err) {
-    console.log(`❌ خطأ في تحميل ملف الأمر ${file}:`, err.message);
+    console.log(`❌ Error loading command ${file}:`, err.message);
   }
 }
 
-// دالة جلب رابط الدعوة للسيرفرات
 async function getInviteLink(guild) {
   try {
     const textChannel = guild.channels.cache.find(
@@ -37,15 +35,14 @@ async function getInviteLink(guild) {
       return invite.url;
     }
   } catch (err) {}
-  return 'لا توجد صلاحية دعوة';
+  return 'No Invite Permission';
 }
 
-// متغيرات عامة لمراجع البوتات
 global.client1Ref = null;
 global.client2Ref = null;
 
 async function main() {
-  console.log(`📋 تم تحميل (${loadedCommandNames.length}) أمر بنجاح:`);
+  console.log(`📋 Loaded (${loadedCommandNames.length}) commands successfully:`);
   console.log(loadedCommandNames.join(', '));
   console.log('-----------------------------------');
 
@@ -62,28 +59,27 @@ async function main() {
   client1.commands = discordCommandsCollection;
   client2.commands = discordCommandsCollection;
 
-  // استخدام Events.ClientReady بدلاً من 'ready' للتخلص من التحذير
-  client1.on(Events.ClientReady, async () => {
+  client1.on('clientReady', async () => {
     global.client1Ref = client1;
-    console.log(`🤖 البوت الأول (${client1.user.tag}) متصل!`);
-    console.log(`📊 عدد السيرفرات: (${client1.guilds.cache.size})`);
+    console.log(`🤖 Bot 1 Connected: (${client1.user.tag})`);
+    console.log(`📊 Total Guilds: (${client1.guilds.cache.size})`);
     let index = 1;
     for (const [, guild] of client1.guilds.cache) {
       const invite = await getInviteLink(guild);
-      console.log(`${index}.${guild.name} ID= ${guild.id} INVIT LINK = ${invite}`);
+      console.log(`${index}. ${guild.name} | ID= ${guild.id} | INVITE= ${invite}`);
       index++;
     }
     console.log('-----------------------------------');
   });
 
-  client2.on(Events.ClientReady, async () => {
+  client2.on('clientReady', async () => {
     global.client2Ref = client2;
-    console.log(`🤖 البوت الثاني (${client2.user.tag}) متصل!`);
-    console.log(`📊 عدد السيرفرات: (${client2.guilds.cache.size})`);
+    console.log(`🤖 Bot 2 Connected: (${client2.user.tag})`);
+    console.log(`📊 Total Guilds: (${client2.guilds.cache.size})`);
     let index = 1;
     for (const [, guild] of client2.guilds.cache) {
       const invite = await getInviteLink(guild);
-      console.log(`${index}.${guild.name} ID= ${guild.id} INVIT LINK = ${invite}`);
+      console.log(`${index}. ${guild.name} | ID= ${guild.id} | INVITE= ${invite}`);
       index++;
     }
     console.log('-----------------------------------');
@@ -102,3 +98,16 @@ async function main() {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  client1.on('interactionCreate', handleInteraction);
+  client2.on('interactionCreate', handleInteraction);
+
+  if (token1) client1.login(token1);
+  if (token2) client2.login(token2);
+}
+
+main();
+
+process.on('unhandledRejection', () => {});
+process.on('uncaughtException', () => {});

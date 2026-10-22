@@ -3,10 +3,10 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('stock')
-    .setDescription('عرض ستوك الفواكه الحالي في لعبة Blox Fruits')
+    .setDescription('!')
     .addStringOption(option =>
       option.setName('shop')
-        .setDescription('اختر المتجر المراد عرض الستوك الخاص به')
+        .setDescription('!')
         .setRequired(true)
         .addChoices(
           { name: '🏪 المتجر العادي (Normal Dealer)', value: 'normal' },

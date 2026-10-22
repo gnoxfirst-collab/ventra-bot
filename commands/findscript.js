@@ -4,15 +4,15 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('findscript')
-    .setDescription('البحث عن سكربت من موقع ScriptBlox مع تحديد خيار المفتاح')
+    .setDescription('!')
     .addStringOption(option =>
       option.setName('name')
-        .setDescription('اسم الماب أو السكربت المراد البحث عنه')
+        .setDescription('!')
         .setRequired(true)
     )
     .addBooleanOption(option =>
       option.setName('key')
-        .setDescription('هل تريد السكربت بمفتاح (true) أم بدون مفتاح (false)؟')
+        .setDescription('!')
         .setRequired(true)
     ),
   async execute(interaction) {
