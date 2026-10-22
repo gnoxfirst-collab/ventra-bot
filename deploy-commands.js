@@ -1,77 +1,51 @@
-const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
-require('dotenv').config();
 
-const commandsPath = path.join(process.cwd(), 'commands');
+const commandsPath = path.join(__dirname, 'commands');
 
-function getAllCommandFiles(dir) {
-  let filesList = [];
-  if (!fs.existsSync(dir)) return filesList;
-  const items = fs.readdirSync(dir);
-  for (const item of items) {
-    const fullPath = path.join(dir, item);
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      filesList = filesList.concat(getAllCommandFiles(fullPath));
-    } else if (item.endsWith('.js')) {
-      filesList.push(fullPath);
-    }
-  }
-  return filesList;
-}
-
-async function checkCommands() {
-  const token = process.env.TOKEN_BOT1 || process.env.TOKEN;
-  const clientId = process.env.CLIENT_ID_1 || process.env.CLIENT_ID;
-
-  if (!token || !clientId) {
-    console.log(`❌ بيانات التوكين أو Client ID غير موجودة في .env`);
+function listLongDescriptionFiles() {
+  if (!fs.existsSync(commandsPath)) {
+    console.log('❌ مجلد commands غير موجود!');
     return;
   }
 
-  const rest = new REST({ version: '10' }).setToken(token);
-  const commandFiles = getAllCommandFiles(commandsPath);
+  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+  let longDescCount = 0;
 
-  console.log(`🔍 جاري فحص الـ [${commandFiles.length}] ملف محلياً لاكتشاف الملف المعطوب...\n`);
+  console.log(`🔍 جاري البحث عن الملفات التي يتجاوز وصفها 100 حرف...\n`);
+  console.log('--------------------------------------------------');
 
-  let badFilesCount = 0;
-
-  for (const filePath of commandFiles) {
-    const fileName = path.basename(filePath);
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
     try {
       delete require.cache[require.resolve(filePath)];
       const command = require(filePath);
 
-      if (!command || !command.data || typeof command.data.toJSON !== 'function') {
-        console.log(`❌ [ملف تالف/غير مكتمل]: ${fileName}`);
-        badFilesCount++;
-        continue;
+      if ('data' in command) {
+        const jsonCmd = command.data.toJSON();
+        const desc = jsonCmd.description || '';
+
+        // إذا كان الوصف أكثر من 100 حرف
+        if (desc.length > 100) {
+          longDescCount++;
+          console.log(`📄 [الملف رقم ${longDescCount}]: ${file}`);
+          console.log(`   - اسم الأمر: /${jsonCmd.name}`);
+          console.log(`   - طول الوصف الحالي: ${desc.length} حرف (المسموح 100 فقط)`);
+          console.log(`   - النص الحالي: "${desc}"`);
+          console.log('--------------------------------------------------');
+        }
       }
-
-      const jsonCmd = command.data.toJSON();
-
-      // فحص القواعد محلياً بدون إثقال ديسكورد
-      if (!jsonCmd.name || jsonCmd.name.length > 32 || !/^[a-z0-9-_]+$/.test(jsonCmd.name)) {
-        console.log(`❌ [اسم غير مرخص]: ${fileName} (الاسم: ${jsonCmd.name})`);
-        badFilesCount++;
-      } else if (jsonCmd.description && jsonCmd.description.length > 100) {
-        console.log(`❌ [وصف طويل جداً]: ${fileName}`);
-        badFilesCount++;
-      }
-
     } catch (err) {
-      console.log(`❌ [خطأ برمجي في الملف]: ${fileName}`);
-      badFilesCount++;
+      console.log(`❌ خطأ في قراءة الملف ${file}:`, err.message);
     }
   }
 
-  console.log(`\n----------------------------------------`);
-  if (badFilesCount === 0) {
-    console.log(`✅ جميع الملفات سليمة 100% برمجياً!`);
+  if (longDescCount === 0) {
+    console.log('✅ ممتاز! جميع الملفات أوصافها أقل من 100 حرف ولا يوجد أي ملف مخالف.');
   } else {
-    console.log(`⚠️ تم رصد [${badFilesCount}] ملف مخالف بالشروط أعلاه.`);
+    console.log(`\n⚠️ إجمالي الملفات المخالفة المطلوبة للتعديل: [${longDescCount}] ملف.`);
+    console.log('👉 افتح الملفات المذكورة أعلاه وقصّر الوصف فيها لأقل من 100 حرف ثم شغل كود الرفع.');
   }
 }
 
-checkCommands();
+listLongDescriptionFiles();
