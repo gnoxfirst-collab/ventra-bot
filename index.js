@@ -59,7 +59,8 @@ async function main() {
   client1.commands = discordCommandsCollection;
   client2.commands = discordCommandsCollection;
 
-  client1.on('clientReady', async () => {
+  // التصحيح هنا: استبدال clientReady بـ ready
+  client1.once('ready', async () => {
     global.client1Ref = client1;
     console.log(`🤖 Bot 1 Connected: (${client1.user.tag})`);
     console.log(`📊 Total Guilds: (${client1.guilds.cache.size})`);
@@ -72,7 +73,7 @@ async function main() {
     console.log('-----------------------------------');
   });
 
-  client2.on('clientReady', async () => {
+  client2.once('ready', async () => {
     global.client2Ref = client2;
     console.log(`🤖 Bot 2 Connected: (${client2.user.tag})`);
     console.log(`📊 Total Guilds: (${client2.guilds.cache.size})`);
