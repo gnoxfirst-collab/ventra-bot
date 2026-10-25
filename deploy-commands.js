@@ -47,8 +47,8 @@ for (const file of commandFiles) {
 console.log(`📦 إجمالي الأوامر السليمة والمجهزة: (${allCommands.length}) أمر.`);
 
 // تقسيم الأوامر للبوتين لمنع الرفض
-const bot1Commands = allCommands.slice(0, 100);
-const bot2Commands = allCommands.slice(100, 200);
+const bot1Commands = allCommands;
+const bot2Commands = allCommands;
 
 const bots = [
     { name: 'البوت الأول', token: process.env.TOKEN_BOT1, clientId: process.env.CLIENT_ID, commands: bot1Commands },
